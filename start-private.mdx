@@ -1,0 +1,78 @@
+---
+title: Private Cloud
+description: "Welcome to your Impact AI Private Cloud setup guide. For customers with high privacy and security requirements, deploying Impact AI's data plane on your private Azure cloud is an ideal solution. This guide details a simple, logical process to deploy the Impact AI data plane while ensuring full control over your data."
+---
+
+## Overview
+
+Impact AI's architecture divides responsibilities between the control plane (UI and metadata) and the data plane (agent operations, databases and data storage). In this guide, we focus on deploying the data plane to your private cloud to ensure that your sensitive data remains secure within your environment.
+
+## Prerequisites (Azure)
+
+- An active Azure subscription with sufficient permissions to deploy resources.
+- Azure CLI installed and authenticated.
+- Basic familiarity with Bicep templates or using Azure Resource Manager.
+
+### Step 1: Create a Resource Group
+
+Begin by creating a dedicated resource group for Impact AI. For example, run the following command in your terminal:
+
+```
+az group create --name rg-impact --location eastus
+```
+
+### Step 2: Deploy the Data Plane
+
+Deploy the necessary data plane components which include:
+- An API layer (using Azure Container App Services) to handle services and data processing.
+- A model registry (using Azure AI Foundry) to store your models.
+- A database (using Azure Database for PostgreSQL) for storing data.
+- Networking components (Virtual Networks, Private Endpoints) to restrict access to your data plane.
+
+Download the Bicep template (impact-dataplane.bicep) and deploy it as follows:
+
+```
+az deployment group create --resource-group rg-impact --template-file impact-dataplane.bicep --parameters company="<YOUR_COMPANY_NAME>" environment="production"
+```
+
+### Step 3: Configure Environment
+
+After deployment, configure the following environment variables for seamless integration with your Impact AI SDK:
+
+- IMPACT_URL: The internal URL of your deployed API.
+- IMPACT_PUBLIC_URL: The externally visible URL of your container app.
+
+These variables can be set via the Azure Portal's Application Settings or the Azure CLI.
+
+### Step 4: Secure Your Data Plane
+
+The Impact AI data plane implements robust security measures by default:
+
+- Isolates your API and database within a Virtual Network (VNet) with strict inbound and outbound rules.
+- Utilizes Azure Private Link to ensure secure, private connectivity.
+- Secure the endpoint with managed certificates and enable strong authentication.
+- Configures role-based access control and integrates with your identity provider.
+
+### Step 5: Test the Setup with the Impact AI SDK
+
+Validate your deployment by running a small test. For example, using the Impact AI Python SDK.
+
+```
+import impact
+
+# Product logic
+```
+
+Ensure that your environment variables are correctly set, so the application communicates with your data plane.
+
+## Maintenance and Scaling
+
+- Use Container App Service scaling features to manage varying workloads.
+- Update your Bicep templates regularly to benefit from new features and performance improvements.
+
+Feel free to adjust resource names, configuration parameters, and networking settings according to your organization's requirements.
+
+## Next Steps
+
+- **Invite Teammates:** Share access with your team.
+- **Get started with Max:** Follow the [Max](/workflows/max) guide.
