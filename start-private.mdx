@@ -1,78 +1,59 @@
 ---
 title: Private Cloud
-description: "Welcome to your Impact AI Private Cloud setup guide. For customers with high privacy and security requirements, deploying Impact AI's data plane on your private Azure cloud is an ideal solution. This guide details a simple, logical process to deploy the Impact AI data plane while ensuring full control over your data."
+description: "Welcome to your Impact Private Cloud setup guide. For customers with high privacy and security requirements, this guide details the simple steps to setup the Impact AI platform in your private cloud."
 ---
 
-## Overview
+## Get Started
 
-Impact AI's architecture divides responsibilities between the control plane (UI and metadata) and the data plane (agent operations, databases and data storage). In this guide, we focus on deploying the data plane to your private cloud to ensure that your sensitive data remains secure within your environment.
+Private-Cloud deployment lets you run the Impact AI platform inside **your** Azure tenant while our team manages it securely through Azure Lighthouse.
 
-## Prerequisites (Azure)
+<Steps>
+  <Step title="Deploy the Azure Lighthouse Template">
+    1. Click **Azure Lighthouse** -> **Service providers**  -> **Add via template**  
+    2. Upload `{impact-private-cloud}.json` and select **Review + Create**
+  </Step>
+  <Step title="Impact AI Completes Setup">
+    We deploy the platform (ACA, Storage, Agents, etc). You'll receive credentials for:
+    ```text
+    https://{fqdn}
+    ```
+  </Step>
+</Steps>
 
-- An active Azure subscription with sufficient permissions to deploy resources.
-- Azure CLI installed and authenticated.
-- Basic familiarity with Bicep templates or using Azure Resource Manager.
+> Need to revoke access? Delete the **Delegated resource management** assignment and our permissions disappear within ~60 seconds.
 
-### Step 1: Create a Resource Group
+## Resources and Permissions
 
-Begin by creating a dedicated resource group for Impact AI. For example, run the following command in your terminal:
+When you approve the delegation, the following resources will be deployed:
 
-```
-az group create --name rg-impact --location eastus
-```
+- **Container Services**: Hosts the Impact AI microservices
+- **Database Services**: Stores metadata and configuration
+- **Key Management**: Securely manages credentials and secrets
+- **Storage Services**: Stores data and model artifacts
+- **AI Services**: Manages AI models (optional)
+- **Virtual Network**: Secures the entire deployment
 
-### Step 2: Deploy the Data Plane
+The deployment grants specific role assignments to ensure secure operation while maintaining your administrative control.
+| Role | Purpose | Scope |
+|------|---------|-------|
+| Contributor | Deploy and manage resources | Resource group |
+| User Access Administrator | Manage access to resources | Resource group |
+| Key Vault Administrator | Manage secrets and certificates | Key Vault |
+| Storage Blob Data Contributor | Manage data in storage | Storage accounts |
 
-Deploy the necessary data plane components which include:
-- An API layer (using Azure Container App Services) to handle services and data processing.
-- A model registry (using Azure AI Foundry) to store your models.
-- A database (using Azure Database for PostgreSQL) for storing data.
-- Networking components (Virtual Networks, Private Endpoints) to restrict access to your data plane.
+## Benefits of Private Cloud
 
-Download the Bicep template (impact-dataplane.bicep) and deploy it as follows:
-
-```
-az deployment group create --resource-group rg-impact --template-file impact-dataplane.bicep --parameters company="<YOUR_COMPANY_NAME>" environment="production"
-```
-
-### Step 3: Configure Environment
-
-After deployment, configure the following environment variables for seamless integration with your Impact AI SDK:
-
-- IMPACT_URL: The internal URL of your deployed API.
-- IMPACT_PUBLIC_URL: The externally visible URL of your container app.
-
-These variables can be set via the Azure Portal's Application Settings or the Azure CLI.
-
-### Step 4: Secure Your Data Plane
-
-The Impact AI data plane implements robust security measures by default:
-
-- Isolates your API and database within a Virtual Network (VNet) with strict inbound and outbound rules.
-- Utilizes Azure Private Link to ensure secure, private connectivity.
-- Secure the endpoint with managed certificates and enable strong authentication.
-- Configures role-based access control and integrates with your identity provider.
-
-### Step 5: Test the Setup with the Impact AI SDK
-
-Validate your deployment by running a small test. For example, using the Impact AI Python SDK.
-
-```
-import impact
-
-# Product logic
-```
-
-Ensure that your environment variables are correctly set, so the application communicates with your data plane.
-
-## Maintenance and Scaling
-
-- Use Container App Service scaling features to manage varying workloads.
-- Update your Bicep templates regularly to benefit from new features and performance improvements.
-
-Feel free to adjust resource names, configuration parameters, and networking settings according to your organization's requirements.
+- **Data Sovereignty & Security**: Keep all data within your environment with enterprise-grade security that meets compliance requirements.
+- **Managed Operations**: Our team handles all updates, scaling, and maintenance, reducing overhead for your technical teams.
+- **Optimized Cost**: Infrastructure tuned specifically for your workloads ensures efficient resource utilization.
+- **Seamless Updates**: Direct access to our platform engineering team and regular platform updates without disruption.
 
 ## Next Steps
 
-- **Invite Teammates:** Share access with your team.
-- **Get started with Max:** Follow the [Max](/workflows/max) guide.
+- **Get started:** Follow the [Laila](/workflows/laila) guide.
+- **Add Traces:** Start adding Traces using the [Connect](/quickstart) guide.
+- **Contact Us:** Reach out with any questions at [support@impact.ai](mailto:support@impact.ai)
+
+<Info>
+  For customers with heightened security requirements, we also offer [Self-Hosted](/start-selfhosted) deployment options.
+</Info>

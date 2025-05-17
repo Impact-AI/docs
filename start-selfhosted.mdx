@@ -1,0 +1,115 @@
+---
+title: Self Hosted
+description: "Welcome to the Impact AI Self-Hosted setup guide. This guide provides step-by-step instructions for provisioning and deploying the Impact Platform in a self-hosted, air-gapped environment."
+---
+
+## Get Started
+
+Self-Hosted deployment lets you run the Impact AI platform entirely within your infrastructure with **no external connectivity** requirements. This option provides maximum control for air-gapped environments.
+
+## Prerequisites
+
+- **Azure subscription** with Contributor or Owner permissions
+- **Microsoft Entra ID tenant** with permissions to register applications
+- **Azure CLI** (version 2.50.0+)
+- **Azure Bicep CLI** (version 0.17.0+)
+- **jq** (for JSON processing)
+- **Bash terminal**
+
+## Required Package
+
+Impact AI will provide you with:
+- Deployment package containing Bicep templates and scripts
+- Access to Azure Container Registry
+- Configuration templates and documentation
+
+<Steps>
+  <Step title="Prepare Deployment Package">
+    1. Clone the deployment repository from our secure distribution channel
+    2. Extract the package contents to a local directory
+    3. The package includes:
+       - Bicep templates (`provision/*`)
+       - Ancillary scripts (`scripts/*`)
+  </Step>
+
+  <Step title="Configure Deployment Parameters">
+    1. Copy the parameters template to create your configuration:
+       ```bash
+       cp provision/parameters-template.json provision/parameters.json
+       ```
+
+    2. Edit `parameters.json` with your environment-specific values:
+       - Environment
+       - Location
+       - Container registry credentials (provided by Impact AI)
+  </Step>
+
+  <Step title="Provision Infrastructure">
+    Run the main Bicep deployment:
+    ```bash
+     az deployment sub create \
+      --name <deployment> \
+      --template-file provision/main-sub.bicep \
+      --parameters provision/parameters-prod.json
+    ```
+  </Step>
+</Steps>
+
+## Updating Applications
+
+When updates are available, Impact AI will provide updated container images and deployment scripts:
+
+1. Import updated container images:
+   ```bash
+   ./scripts/deploy-apps.sh \
+     --environment your-environment \
+     --services service-to-update \
+     --acr localhost:5000 \
+     --acr-username your-username \
+     --acr-password your-password
+   ```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Container Registry Authentication Failures**
+   - Verify registry credentials
+   - Check network connectivity to the registry
+
+2. **Database Connection Issues**
+   - Verify PostgreSQL is running
+   - Check database credentials
+   - Ensure firewall rules allow connections
+
+3. **Application Configuration Problems**
+   - Verify App Configuration settings
+   - Check environment variables in container deployments
+
+4. **Entra ID Configuration Issues**
+   - Verify application registrations have correct permissions
+   - Check that redirect URIs match your deployment URL
+   - Ensure client secrets haven't expired
+   - Confirm API permissions are properly granted and consented
+   - Verify that users have appropriate directory roles assigned
+
+## Security Considerations
+
+- The platform is deployed within a virtual network with network security groups
+- Private endpoints are used for all Azure PaaS services
+- All authentication is handled through Microsoft Entra ID tenant
+- Service-to-service authentication uses managed identities
+- All data remains within your Azure subscription and region
+- Regular security audits should be performed
+
+## Benefits of Self-Hosted
+
+- **Complete Data Sovereignty**: All data and processing remains within your infrastructure.
+- **Security Control**: Full control over security policies, network rules, and access management.
+- **Environment Customization**: Tailor the deployment to your specific requirements.
+- **Regulatory Compliance**: Satisfy strict regulatory requirements for sensitive workloads.
+
+## Next Steps
+- **Get started:** Follow the [Laila](/workflows/laila) guide.
+- **Add Traces:** Start adding Traces using the [Connect](/quickstart) guide.
+- **Contact Us:** Reach out with any questions at [support@impact.ai](mailto:support@impact.ai)

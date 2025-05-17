@@ -20,7 +20,7 @@
               {
                 "group": "Start Now",
                 "icon": "rocket",
-                "pages": ["start-impact", "start-private"]
+                "pages": ["start-impact", "start-managed", "start-private", "start-selfhosted"]
               },
               "quickstart"
             ]
