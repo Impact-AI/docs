@@ -20,7 +20,7 @@
               {
                 "group": "Start Now",
                 "icon": "rocket",
-                "pages": ["start-impact", "start-managed", "start-private", "start-selfhosted"]
+                "pages": ["start-impact", "start-private"]
               },
               "quickstart"
             ]
@@ -34,11 +34,22 @@
               "workflows/orion",
               "workflows/sage"
             ]
+          },
+          {
+            "group": "Executors",
+            "pages": [
+              "executors/user-persona",
+              "executors/synthetic-users",
+              "executors/simulations",
+              "executors/impacteval",
+              "executors/impactlens",
+              "executors/impacttester"
+            ]
           }
         ]
       },
       {
-        "tab": "API Reference",
+        "tab": "API",
         "groups": [
           {
             "group": "API Documentation",
@@ -52,6 +63,17 @@
               "api-reference/endpoint/get",
               "api-reference/endpoint/create",
               "api-reference/endpoint/delete"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "SDK",
+        "groups": [
+          {
+            "group": "SDK Documentation",
+            "pages": [
+              "quickstart"
             ]
           }
         ]

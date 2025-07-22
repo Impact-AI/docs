@@ -1,37 +1,66 @@
 ---
 title: 'Control'
-description: 'Display inline code and code blocks'
+description: 'Governance and policy enforcement for AI products'
 icon: 'pen-paintbrush'
 ---
 
-## Basic
+# Control (Laila)
 
-### Inline Code
+Laila is your governance and policy–enforcement agent.  It gives teams confidence that every AI product is built, deployed, and operated in line with corporate policy, legal requirements, and ethical guidelines.
 
-To denote a `word` or `phrase` as code, enclose it in backticks (`).
+## Why Control matters
 
+Unchecked AI systems can expose an organisation to legal, brand, and operational risk.  Laila provides the **guard-rails** that let product teams move quickly *without* compromising compliance or safety.
+
+## Key capabilities
+
+- **Policy Templates & Rules-as-Code** – Encode security, privacy, and ethical requirements once and apply them automatically to every model, prompt, or workflow.
+- **Change-Control Workflows** – Require review and sign-off before risky changes reach production.
+- **Real-time Guard-Rail Execution** – Prevent unsafe outputs or disallowed actions at runtime with low-latency interceptors.
+- **Audit & Traceability** – Every decision, prompt, and output is captured and signed so that you can prove compliance after the fact.
+
+## Typical Workflow
+
+1. **Import a baseline policy** – Start from one of the included frameworks (GDPR, HIPAA, ISO-42001) or author your own YAML policy file.
+2. **Attach control points** – Use the SDK or no-code connectors to insert control hooks at data ingress, prompt generation, and response emission.
+3. **Simulate** – Run Laila in “dry-run” mode to see which requests would be blocked and why.
+4. **Enforce** – Switch the policy to *blocking* mode once you are confident.
+5. **Monitor & iterate** – Review automatic audit reports and fine-tune policies as requirements evolve.
+
+<Tip>
+Combine Laila with **Orion** for deep behavioural analytics and **Sage** for regression testing.  Together they deliver continuous compliance across the product lifecycle.
+</Tip>
+
+## API Snapshot
+
+```python title="policy.yaml"
+rules:
+  - id: pii_detection
+    description: "Block outputs that contain personally identifiable information"
+    type: regex
+    pattern: "\\b(\d{3}-\d{2}-\d{4})\\b"  # SSN example
+    action: block
 ```
-To denote a `word` or `phrase` as code, enclose it in backticks (`).
+
+```python
+from impact.sdk import Control
+
+ctrl = Control.load_policy("policy.yaml")
+
+@ctrl.guardrail
+def generate_response(prompt: str):
+    ...
 ```
 
-### Code Block
+## Best Practices
 
-Use [fenced code blocks](https://www.markdownguide.org/extended-syntax/#fenced-code-blocks) by enclosing code in three backticks and follow the leading ticks with the programming language of your snippet to get syntax highlighting. Optionally, you can also write the name of your code after the programming language.
+1. **Start permissive, then tighten** – Use logging-only mode first to understand impact.
+2. **Version policies** – Treat policies like code; store them in Git and use pull-requests.
+3. **Empower, don’t block** – Provide actionable feedback to developers when a request is rejected.
+4. **Review telemetry** – Use Laila’s dashboards to spot hotspots and refine rules.
 
-```java HelloWorld.java
-class HelloWorld {
-    public static void main(String[] args) {
-        System.out.println("Hello, World!");
-    }
-}
-```
+## Further Reading
 
-````md
-```java HelloWorld.java
-class HelloWorld {
-    public static void main(String[] args) {
-        System.out.println("Hello, World!");
-    }
-}
-```
-````
+- [White-paper: Governance for Generative AI](https://impact.ai/resources/governance)
+- [Policy DSL reference](/api-reference/policy-dsl)
+- [Control SDK](/quickstart)

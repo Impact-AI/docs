@@ -1,110 +1,72 @@
 ---
-title: Analyse
-description: Reusable, custom snippets to keep content in sync
+title: 'Analyse'
+description: 'Behavioural analytics and continuous insight generation for AI products'
 icon: 'recycle'
 ---
 
-import SnippetIntro from '/snippets/snippet-intro.mdx';
+# Analyse (Orion)
 
-<SnippetIntro />
+Orion turns raw traces, logs, and user feedback into **actionable product insights**.  With live dashboards, deep behavioural analytics, and automated root-cause analysis, it empowers product managers and data scientists to iterate with confidence.
 
-## Creating a custom snippet
+## Core analytics pillars
 
-**Pre-condition**: You must create your snippet file in the `snippets` directory.
+1. **Usage** – Understand *who* is using your models, *how often*, and *where* friction occurs.
+2. **Quality** – Track answer correctness, hallucination rates, and adherence to policy across segments.
+3. **Performance** – Monitor latency, throughput, and cost across models and prompts.
+4. **Business Impact** – Correlate model performance with downstream KPIs such as conversion or revenue lift.
 
-<Note>
-  Any page in the `snippets` directory will be treated as a snippet and will not
-  be rendered into a standalone page. If you want to create a standalone page
-  from the snippet, import the snippet into another file and call it as a
-  component.
-</Note>
+## Data model at a glance
 
-### Default export
+<CodeGroup>
+```mermaid title="Logical Schema"
+erDiagram
+  Session ||--o{ Trace: contains
+  Trace ||--|{ Span: has
+  Trace ||--|{ Feedback: has
+```
+</CodeGroup>
 
-1. Add content to your snippet file that you want to re-use across multiple
-   locations. Optionally, you can add variables that can be filled in via props
-   when you import the snippet.
+## Interactive dashboards
 
-```mdx snippets/my-snippet.mdx
-Hello world! This is my content I want to reuse across pages. My keyword of the
-day is {word}.
+- **Funnel Analysis** – Drop-off visualisation for multi-turn conversations.
+- **Segment Explorer** – Create user cohorts on the fly and compare KPIs.
+- **Prompt Diff** – Side-by-side comparison of prompt changes and their impact.
+
+<Tip>
+All dashboards are powered by a column-store backend, so even billion-row datasets stay snappy.
+</Tip>
+
+## Example: Investigate a spike in hallucinations
+
+```python
+from impact.analytics import Orion
+
+o = Orion()
+
+chart = (
+    o.traces()
+      .where(model="gpt-4o")
+      .rolling(window="1h")
+      .metric("hallucination_rate")
+      .plot()
+)
+chart.show()
 ```
 
-<Warning>
-  The content that you want to reuse must be inside the `snippets` directory in
-  order for the import to work.
-</Warning>
+## Integrations
 
-2. Import the snippet into your destination file.
+- **BI Tools** – Export datasets to Snowflake, BigQuery, or Tableau.
+- **Alerting** – Push anomalies to Slack, PagerDuty, or email.
+- **Notebooks** – Pull pre-cleaned dataframes into pandas or Polars for ad-hoc exploration.
 
-```mdx destination-file.mdx
----
-title: My title
-description: My Description
----
+## Best Practices
 
-import MySnippet from '/snippets/path/to/my-snippet.mdx';
+1. **Start with questions** – Frame hypotheses first, then use Orion to test them.
+2. **Tag everything** – Rich `metadata` tags enable powerful filtering later.
+3. **Automate alerts** – Don’t wait for a KPI to fall off a cliff; subscribe to anomalies.
+4. **Close the loop** – Feed insights back to Laila (Control) and Sage (Test) for rapid iteration.
 
-## Header
+## Further Reading
 
-Lorem impsum dolor sit amet.
-
-<MySnippet word="bananas" />
-```
-
-### Reusable variables
-
-1. Export a variable from your snippet file:
-
-```mdx snippets/path/to/custom-variables.mdx
-export const myName = 'my name';
-
-export const myObject = { fruit: 'strawberries' };
-```
-
-2. Import the snippet from your destination file and use the variable:
-
-```mdx destination-file.mdx
----
-title: My title
-description: My Description
----
-
-import { myName, myObject } from '/snippets/path/to/custom-variables.mdx';
-
-Hello, my name is {myName} and I like {myObject.fruit}.
-```
-
-### Reusable components
-
-1. Inside your snippet file, create a component that takes in props by exporting
-   your component in the form of an arrow function.
-
-```mdx snippets/custom-component.mdx
-export const MyComponent = ({ title }) => (
-  <div>
-    <h1>{title}</h1>
-    <p>... snippet content ...</p>
-  </div>
-);
-```
-
-<Warning>
-  MDX does not compile inside the body of an arrow function. Stick to HTML
-  syntax when you can or use a default export if you need to use MDX.
-</Warning>
-
-2. Import the snippet into your destination file and pass in the props
-
-```mdx destination-file.mdx
----
-title: My title
-description: My Description
----
-
-import { MyComponent } from '/snippets/custom-component.mdx';
-
-Lorem ipsum dolor sit amet.
-
-<MyComponent title={'Custom title'} />
-```
+- [Analytics DSL reference](/api-reference/analytics-dsl)
+- [Case Study: 30% Latency Reduction with Orion](https://impact.ai/resources/case-studies/orion)
