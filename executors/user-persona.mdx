@@ -6,21 +6,74 @@ icon: "user"
 
 # User Persona
 
-User Persona allows you to create detailed individual user personas that can be used across your AI testing and simulation workflows. Define specific characteristics, behaviors, and preferences for realistic user interactions.
+Define realistic, evidence‑backed user personas that you can reuse across products for prioritization, testing, and simulations. Personas created here are first‑class objects: they can be converted into synthetic users, referenced in experiments, and used to segment analytics.
 
-## Key Features
+## Persona schema
 
-- **Persona Creation**: Build detailed user profiles with demographics, preferences, and behavior patterns
-- **Behavioral Modeling**: Define how users interact with your AI systems
-- **Integration Ready**: Seamlessly integrate with other Impact AI executors
+Capture concise, testable attributes. Keep each field actionable and tied to evidence.
 
-## Getting Started
+- Profile: name/label, role, seniority, industry/segment, geography
+- Goals: desired outcomes and success criteria
+- Pain points: blockers, risks, and constraints
+- Behaviors: frequency of use, channels, decision style
+- Environment: tools, data access, policies/compliance needs
+- KPIs: how this persona measures success
+- Compliance: privacy/PII sensitivity, guardrails
+- Tags: segment labels used across the platform (e.g., "Ops", "Analyst")
 
-Create your first user persona by defining their characteristics and behavioral patterns. User personas can be used in simulations, testing scenarios, and evaluation workflows.
+<Tip>
+Use short, specific statements instead of narratives. Link each statement to a source (ticket, interview, metric) so it stays trustworthy.
+</Tip>
 
-## Use Cases
+## Create a persona (step‑by‑step)
 
-- A/B testing with specific user types
-- Personalized AI response testing
-- User journey simulation
-- Behavioral analysis and optimization 
+1) Start a new persona
+- Go to Executors → User Persona → New Persona
+- Select the product context (personas are scoped per product)
+
+2) Seed from real data
+- Paste notes from interviews, surveys, support tickets, or CRM
+- Optionally upload a short transcript or summary
+
+3) AI‑assisted drafting
+- In Work Chat, ask: “Draft a persona for [role/segment] from these notes, list goals/pains/behaviors succinctly”
+- Review the draft; accept or edit fields inline
+
+4) Finalize structure
+- Keep 3–5 bullets per section
+- Add tags you will reuse in Opportunities, Simulations, and Analytics
+- Save; the persona is versioned so later edits are tracked
+
+<Note>
+Avoid stereotypes. Base attributes on evidence and make them falsifiable through experiments.
+</Note>
+
+## Validate and evolve
+
+- Triangulate: combine qualitative inputs (calls, interviews) with product analytics
+- Quick check: run a 3–5 question survey to confirm top goals/pains
+- Pilot: execute a small task flow; compare outcomes vs. persona KPIs
+- Review cadence: revisit quarterly; merge or retire low‑signal personas
+
+## Use personas across the platform
+
+- Prioritization: link personas to Opportunities to make trade‑offs explicit
+- Testing: convert personas to Synthetic Users for scenario coverage → see /executors/synthetic-users
+- Simulations: assemble flows with multiple personas to validate UX and guardrails at scale → see /executors/simulations
+- Analytics: segment Orion dashboards by persona tags to spot adoption gaps → see /workflows/orion
+- Control: map persona constraints (privacy, PII, safety) to policies in Laila → see /workflows/laila
+- Strategy: reference primary/secondary personas in Max to keep objectives user‑anchored → see /workflows/max
+
+## Best practices
+
+- Focus: keep 3–5 personas per product lifecycle phase
+- Be measurable: tie each goal to at least one KPI you can observe
+- Stay atomic: one persona = one coherent set of goals/behaviors
+- Source links: attach citations (issue IDs, interview IDs, dashboard URLs)
+- Update rhythm: schedule a quarterly review to prevent drift
+
+## FAQs
+
+- Multiple products? Personas are scoped to the selected product. Switch products from the sidebar; each product maintains its own persona set.
+- Import/export? Paste structured JSON/Markdown or let Work Chat parse notes. Export personas as JSON for sharing.
+- Permissions? Personas inherit the product’s access controls.
