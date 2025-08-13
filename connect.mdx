@@ -1,0 +1,112 @@
+---
+title: "Connect"
+description: "Connect your product to the Impact platform. Instrument your code using the Impact AI SDK for automated tracing."
+icon: "plug"
+---
+
+## Add your AI product
+
+Before connecting, first add your product using the [Add Product](/add-product) guide.
+
+If you're using one of our AI platform [integration](/integrations) partners, use [Laila](/workflows/laila) to do this automatically otherwise continue below.
+
+## Instrument your code
+
+Install the Impact AI SDK and instrument your code to capture traces.
+
+### Step 1: Install the SDK
+
+Install the Impact AI SDK using pip:
+
+```bash
+pip install impact
+```
+
+### Step 2: Initialize Tracing
+
+In your Python application, initialize tracing as follows:
+
+```python
+# Import
+from impact.sdk import Impact
+
+# Initialize tracing
+Impact.init()
+```
+
+<Tip>
+  For best results place the this code **after** all your other imports.
+</Tip>
+
+### Step 3: Annotate Workflows
+
+Optional: For agent or RAG workflows, decorate your functions to capture detailed traces:
+
+```python
+from impact.sdk.decorators import workflow, task, tool
+
+@workflow(name="agent_workflow")
+def execute_agent():
+    # Your agent workflow here
+    return result
+
+@task(name="agent_task")
+def execute_task():
+    # Agent logic you want to track
+    return result
+
+@tool(name="agent_tool")
+def execute_tool():
+    # Agent tool
+    return result
+```
+
+<Tip>
+  The <code>name</code> argument is optional. The function name will be used if name is not provided.
+</Tip>
+
+### Step 4: Set Association Properties
+
+Set the user and interaction identifiers for trace association:
+
+```python
+Impact.set_association_properties({
+  user_id: "user_001",
+  interaction_id: "chat_001"
+})
+```
+
+<Tip>
+  Use the key-value pair to associate an interaction (session) and user id with the trace
+</Tip>
+
+### Step 5: Generate an API Key
+
+In the Impact platform, create an API key for your environment/version:
+
+- Go to Admin → API Keys → Click "Generate New Key"
+- Choose the product, version, and expiry time
+- Copy the generated key and store it securely
+
+You will use this key as `IMPACT_API_KEY` in the next step.
+
+### Step 6: Configure Trace Exporting
+
+Set the following **environment variables** in your backend application to export your traces:
+
+- `IMPACT_API_KEY`
+- `IMPACT_URL`
+
+<Tip>
+  The <code>IMPACT_API_KEY</code> is created in step 5. Your <code>IMPACT_URL</code> is provided by Impact support.
+</Tip>
+
+## Viewing Your Traces
+
+Now you can view traces in the Impact AI datasets page. Explore detailed insights into each trace, including execution time, errors, and workflow structures.
+
+## Next Steps
+
+- [Contact Support](mailto:technology@impact.ai) - Reach out for help or feedback.
+ 
+

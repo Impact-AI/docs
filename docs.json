@@ -22,7 +22,8 @@
                 "icon": "rocket",
                 "pages": ["start-impact", "start-private"]
               },
-              "quickstart"
+              "add-product",
+              "connect"
             ]
           },
           {
@@ -54,7 +55,7 @@
           {
             "group": "SDK Documentation",
             "pages": [
-              "quickstart"
+              "connect"
             ]
           }
         ]
@@ -68,12 +69,12 @@
       "anchors": [
         {
           "anchor": "Community",
-          "href": "https://mintlify.com/community",
+          "href": "https://impactai.mintlify.app/introduction",
           "icon": "slack"
         },
         {
           "anchor": "Updates",
-          "href": "https://mintlify.com/blog",
+          "href": "https://impactai.mintlify.app/introduction",
           "icon": "newspaper"
         }
       ]
