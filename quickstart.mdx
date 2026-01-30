@@ -1,0 +1,197 @@
+---
+title: Quickstart
+description: "Get your first traces flowing in 5 minutes"
+icon: "rocket"
+---
+
+This guide will help you connect your AI application to Impact AI and start capturing traces.
+
+## Prerequisites
+
+- Python 3.10 or higher
+- An AI application using OpenAI, Anthropic, Azure OpenAI, or another supported provider
+- An Impact AI account ([sign up](https://app.impact.ai))
+
+## Step 1: Install the SDK
+
+Install the Impact AI SDK using pip:
+
+<CodeGroup>
+
+```bash pip
+pip install impact
+```
+
+```bash uv
+uv add impact
+```
+
+```bash poetry
+poetry add impact
+```
+
+</CodeGroup>
+
+## Step 2: Get Your API Key
+
+1. Log in to [Impact AI](https://app.impact.ai)
+2. Navigate to **Settings** → **API Keys**
+3. Click **Generate New Key**
+4. Select your product and version
+5. Copy the generated key
+
+## Step 3: Initialize the SDK
+
+Add the following to your application's entry point:
+
+```python
+import os
+from impact.sdk import init
+
+# Initialize Impact AI (after your other imports)
+init(
+    api_key=os.getenv("IMPACT_API_KEY"),
+    api_endpoint=os.getenv("IMPACT_URL")
+)
+```
+
+<Tip>
+  Place the `init()` call **after** importing your AI provider SDKs (OpenAI, Anthropic, etc.) for automatic instrumentation to work correctly.
+</Tip>
+
+## Step 4: Set Environment Variables
+
+Configure these environment variables:
+
+```bash
+export IMPACT_API_KEY="your-api-key-here"
+export IMPACT_URL="https://your-tenant.impact.ai"
+```
+
+## Step 5: Add Context (Optional)
+
+For better trace organization, add user and interaction context:
+
+```python
+from impact.sdk import context
+
+# Before processing a request
+context(
+    user_id="user_123",
+    interaction_id="conversation_456"
+)
+```
+
+## Step 6: Run Your Application
+
+Start your application and make some requests. Traces will automatically flow to Impact AI.
+
+```python
+# Your existing code works as-is
+from openai import OpenAI
+
+client = OpenAI()
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
+
+## Step 7: View Your Traces
+
+1. Go to [Impact AI](https://app.impact.ai)
+2. Select your product
+3. Navigate to **Analyse** → **Datasets**
+4. View your traces with full execution details
+
+<Check>
+  You should see traces appearing within seconds of making requests to your AI application.
+</Check>
+
+## What's Captured Automatically
+
+The SDK automatically captures:
+
+| Data | Description |
+|------|-------------|
+| **LLM Calls** | Model, messages, tokens, latency, cost |
+| **Tool Calls** | Function names, arguments, results |
+| **Retrievals** | Query, documents, relevance scores |
+| **Errors** | Exceptions, stack traces, error messages |
+| **Metadata** | Timestamps, trace IDs, span hierarchy |
+
+## Complete Example
+
+Here's a complete example with all features:
+
+```python
+import os
+from openai import OpenAI
+from impact.sdk import init, context, trace
+
+# Initialize Impact AI
+init(
+    api_key=os.getenv("IMPACT_API_KEY"),
+    api_endpoint=os.getenv("IMPACT_URL")
+)
+
+# Initialize OpenAI client
+client = OpenAI()
+
+@trace(name="chat_handler")
+def handle_chat(user_id: str, message: str) -> str:
+    # Set context for this request
+    context(user_id=user_id, interaction_id=f"chat_{user_id}")
+    
+    # Make the LLM call (automatically traced)
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": message}]
+    )
+    
+    return response.choices[0].message.content
+
+# Use it
+result = handle_chat("user_123", "What is Impact AI?")
+print(result)
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="SDK Reference" icon="code" href="/sdk/overview">
+    Learn about all SDK features
+  </Card>
+  <Card title="Custom Tracing" icon="route" href="/sdk/tracing">
+    Add custom spans to your traces
+  </Card>
+  <Card title="Evaluation Modules" icon="puzzle-piece" href="/platform/modules">
+    Set up automated evaluation
+  </Card>
+  <Card title="Agents" icon="robot" href="/agents/overview">
+    Meet the Impact AI agents
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Traces not appearing">
+    - Verify your API key is correct
+    - Check that `IMPACT_URL` is set
+    - Ensure `init()` is called after importing AI provider SDKs
+    - Check your application logs for errors
+  </Accordion>
+  
+  <Accordion title="Missing LLM calls">
+    - Confirm you're using a supported provider (OpenAI, Anthropic, Azure, etc.)
+    - Make sure you're using the official SDK, not a custom HTTP client
+    - Check that auto-instrumentation is enabled (it is by default)
+  </Accordion>
+  
+  <Accordion title="Authentication errors">
+    - Regenerate your API key in the dashboard
+    - Verify the key is for the correct product/version
+    - Check that the key hasn't expired
+  </Accordion>
+</AccordionGroup>

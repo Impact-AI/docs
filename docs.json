@@ -8,78 +8,6 @@
     "dark": "#15803D"
   },
   "favicon": "/favicon.png",
-  "navigation": {
-    "tabs": [
-      {
-        "tab": "Guides",
-        "groups": [
-          {
-            "group": "Get Started",
-            "pages": [
-              "introduction",
-              {
-                "group": "Start Now",
-                "icon": "rocket",
-                "pages": ["start-impact", "start-private"]
-              },
-              "add-product",
-              "connect"
-            ]
-          },
-          {
-            "group": "Workflows",
-            "pages": [
-              "workflows/laila",
-              "workflows/max",
-              "workflows/iris",
-              "workflows/orion",
-              "workflows/sage"
-            ]
-          },
-          {
-            "group": "Executors",
-            "pages": [
-              "executors/user-persona",
-              "executors/synthetic-users",
-              "executors/simulations",
-              "executors/impacteval",
-              "executors/impactlens",
-              "executors/impacttester"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "SDK",
-        "groups": [
-          {
-            "group": "SDK Documentation",
-            "pages": [
-              "connect"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API",
-        "groups": []
-      }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Community",
-          "href": "https://impactai.mintlify.app/introduction",
-          "icon": "slack"
-        },
-        {
-          "anchor": "Updates",
-          "href": "https://impactai.mintlify.app/introduction",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
   "logo": {
     "light": "/images/logo.png",
     "dark": "/images/logo.png"
@@ -88,20 +16,126 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:support@impact.ai"
       }
     ],
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "href": "https://app.impact.ai"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "concepts",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Platform",
+            "pages": [
+              "platform/products",
+              "platform/modules",
+              "platform/intelligence",
+              "platform/impact-studio"
+            ]
+          },
+          {
+            "group": "Agents",
+            "pages": [
+              "agents/overview",
+              "agents/laila",
+              "agents/max",
+              "agents/iris",
+              "agents/orion",
+              "agents/sage"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/synthetic-users",
+              "features/user-personas",
+              "features/simulations"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "SDK",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "sdk/overview",
+              "sdk/installation"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "sdk/initialization",
+              "sdk/tracing",
+              "sdk/context"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "sdk/providers"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Self-Hosted",
+        "groups": [
+          {
+            "group": "Deployment",
+            "pages": [
+              "self-hosted/overview",
+              "self-hosted/deployment"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/impactai",
+          "icon": "github"
+        },
+        {
+          "anchor": "Community",
+          "href": "https://discord.gg/impactai",
+          "icon": "discord"
+        }
+      ]
     }
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/impactai",
+      "github": "https://github.com/impactai",
+      "linkedin": "https://linkedin.com/company/impactai"
     }
+  },
+  "analytics": {
+    "posthog": {
+      "apiKey": ""
+    }
+  },
+  "feedback": {
+    "thumbsRating": true,
+    "suggestEdit": true
   }
 }

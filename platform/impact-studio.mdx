@@ -1,0 +1,265 @@
+---
+title: Impact Studio
+description: "Build and configure evaluation modules with AI assistance"
+icon: "wand-magic-sparkles"
+---
+
+Impact Studio is Impact AI's module builder. It provides a visual interface for creating, configuring, and testing evaluation modules with AI assistance.
+
+## Overview
+
+Impact Studio helps you:
+
+- **Create** evaluation modules with guided configuration
+- **Configure** rubrics, thresholds, and settings
+- **Test** modules against sample data
+- **Deploy** modules to production
+
+## Getting Started
+
+1. Navigate to **Impact Studio** in the sidebar
+2. Click **Create Module** or select an existing module
+3. Configure with assistance from [Sage](/agents/sage)
+
+## Module Types
+
+### Impact Eval
+
+Create LLM-as-a-judge evaluations:
+
+1. **Choose Evaluation Mode**
+   - 1-5 Scale
+   - Pass/Fail
+   - Custom Rubric
+
+2. **Define Rubric**
+   - Score definitions
+   - Evaluation criteria
+   - Examples (optional)
+
+3. **Configure Settings**
+   - Importance level
+   - Alert thresholds
+   - Display options
+
+### Impact Lens
+
+Create classification modules:
+
+1. **Define Tags**
+   - Tag names and descriptions
+   - Hierarchies (optional)
+   - Multi-label settings
+
+2. **Configure Detection**
+   - Detection criteria
+   - Confidence thresholds
+   - Exclusivity rules
+
+## Configuration Interface
+
+### Basic Settings
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Module display name |
+| **Description** | What this module evaluates |
+| **Type** | Impact Eval or Impact Lens |
+| **Status** | Active, Disabled, Draft |
+
+### Evaluation Settings
+
+| Field | Description |
+|-------|-------------|
+| **Mode** | Scoring method |
+| **Rubric** | Score definitions |
+| **Instructions** | Additional guidance for evaluation |
+| **Examples** | Sample inputs and expected outputs |
+
+### Metrics Settings
+
+| Field | Description |
+|-------|-------------|
+| **Importance** | High, Medium, Low |
+| **Starred** | Show in key metrics |
+| **Alertable** | Enable alerts |
+| **Threshold** | Alert trigger value |
+
+## Building with Sage
+
+[Sage](/agents/sage) provides AI assistance throughout the module building process:
+
+### Chat Interface
+
+Chat with Sage to:
+- Describe what you want to evaluate
+- Get rubric suggestions
+- Refine configurations
+- Troubleshoot issues
+
+```
+You: I want to evaluate if responses are too verbose
+
+Sage: I'll help you create a "Response Conciseness" module. 
+Here's a suggested rubric:
+
+5 - Concise and complete, no unnecessary content
+4 - Mostly concise with minor verbosity
+3 - Some unnecessary content but still readable
+2 - Notably verbose, key points buried
+1 - Excessively long, difficult to extract value
+
+Should I adjust any of these definitions?
+```
+
+### Auto-Generation
+
+Sage can auto-generate modules based on:
+- Your product description
+- Sample interactions
+- Existing evaluation criteria
+
+## Testing Modules
+
+Before deploying, test modules against sample data:
+
+### Preview Tab
+
+1. Select sample interactions
+2. Run evaluation
+3. Review results
+4. Adjust configuration as needed
+
+### Test Results
+
+View test results including:
+- Score/classification
+- Confidence level
+- Reasoning
+- Component breakdown
+
+## Deployment
+
+### Save as Draft
+
+Save your configuration without activating:
+- Continue editing later
+- Share for review
+- Test further
+
+### Deploy to Production
+
+Activate the module:
+1. Review configuration
+2. Click **Deploy**
+3. Module starts evaluating new interactions
+
+### Version History
+
+Track changes to your modules:
+- Configuration history
+- Deployment timestamps
+- Rollback options
+
+## Module Templates
+
+Start from templates for common evaluations:
+
+| Template | Description |
+|----------|-------------|
+| **Helpfulness** | Response addresses user's question |
+| **Accuracy** | Information is factually correct |
+| **Safety** | Response is safe and appropriate |
+| **Completeness** | All aspects of query addressed |
+| **Clarity** | Response is clear and understandable |
+| **Topic Detection** | Classify conversation topics |
+| **Intent Recognition** | Identify user intent |
+| **Sentiment Analysis** | Detect user sentiment |
+
+## Advanced Configuration
+
+### Custom Prompts
+
+For advanced users, customize the evaluation prompt:
+
+```markdown
+## Evaluation Task
+
+Evaluate the AI response for {criterion}.
+
+## Context
+- User Query: {input}
+- AI Response: {output}
+- Retrieved Context: {context}
+
+## Rubric
+{rubric}
+
+## Instructions
+{instructions}
+```
+
+### Component Analysis
+
+Enable detailed breakdown:
+- Individual criteria scores
+- Reasoning per component
+- Aggregated result
+
+### Filter Conditions
+
+Apply modules conditionally:
+- Only specific topics
+- Certain user segments
+- Particular interaction types
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Start simple, iterate">
+    Begin with basic rubrics and refine based on results:
+    
+    1. Create initial module
+    2. Run on sample data
+    3. Review disagreements
+    4. Adjust rubric
+    5. Repeat
+  </Accordion>
+  
+  <Accordion title="Use clear, specific rubrics">
+    Good rubrics:
+    - Define each score level clearly
+    - Use objective criteria
+    - Include examples when helpful
+    
+    ```
+    ✓ "Response directly answers the question with accurate information"
+    ✗ "Good response"
+    ```
+  </Accordion>
+  
+  <Accordion title="Test before deploying">
+    Always test modules:
+    - Against diverse examples
+    - Edge cases
+    - Known good/bad responses
+  </Accordion>
+  
+  <Accordion title="Monitor after deployment">
+    After deploying:
+    - Check initial results
+    - Verify alignment with expectations
+    - Adjust thresholds as needed
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Sage Agent" icon="bullseye" href="/agents/sage">
+    Get AI assistance building modules
+  </Card>
+  <Card title="Intelligence" icon="chart-mixed" href="/platform/intelligence">
+    View metrics from your modules
+  </Card>
+</CardGroup>

@@ -1,0 +1,189 @@
+---
+title: Products & Versions
+description: "Organize your AI applications in Impact AI"
+icon: "cube"
+---
+
+Products and versions are the foundation of how Impact AI organizes your AI applications.
+
+## What is a Product?
+
+A **Product** represents a single AI application or feature. This could be:
+
+- A customer support chatbot
+- A document Q&A system
+- A code assistant
+- An AI agent or workflow
+- Any GenAI-powered feature
+
+Each product has its own:
+- Evaluation modules
+- Metrics and intelligence
+- Datasets and traces
+- Configuration and settings
+
+## Creating a Product
+
+### Via the Dashboard
+
+1. Click **Add Product** in the sidebar
+2. Enter product details:
+   - **Name**: Display name for your product
+   - **Description**: What the product does
+   - **Type**: Agent, Chatbot, RAG, or Custom
+   - **Use Case**: Primary use case description
+3. Click **Create**
+
+### Via Laila (AI-Assisted)
+
+For a guided setup experience, use [Laila](/agents/laila):
+
+1. Start a conversation with Laila
+2. Describe your AI product
+3. Laila will gather requirements and create the product with appropriate configuration
+
+## Product Properties
+
+| Property | Description |
+|----------|-------------|
+| **Name** | Display name |
+| **Description** | What the product does |
+| **Owner** | Team or individual responsible |
+| **Type** | Agent, Chatbot, RAG, Custom |
+| **Status** | Build, Available, Deprecated |
+| **Use Case** | Primary use case |
+| **Tags** | Labels for organization |
+
+## Product Status
+
+Products have a lifecycle status:
+
+| Status | Description |
+|--------|-------------|
+| **Build** | Under development, not production-ready |
+| **Available** | Production-ready and actively used |
+| **Deprecated** | Being phased out, limited support |
+
+## Versions
+
+A **Version** represents a specific configuration or release of your product.
+
+### Why Use Versions?
+
+- **Track changes** over time
+- **Compare performance** between releases
+- **Run A/B tests** between configurations
+- **Gradual rollouts** with version-specific routing
+- **Debug issues** by isolating to specific versions
+
+### Creating a Version
+
+1. Navigate to your product
+2. Go to **Settings** → **Versions**
+3. Click **Add Version**
+4. Configure:
+   - **Name**: Version identifier (e.g., "v1.0.0", "production")
+   - **Status**: Available, Draft, Archived
+   - **Release Notes**: What's changed
+   - **Connection Config**: How to connect to your AI endpoint
+
+### Version Properties
+
+| Property | Description |
+|----------|-------------|
+| **Name** | Version identifier |
+| **Status** | Available, Draft, Archived |
+| **Release Notes** | Description of changes |
+| **Config** | Connection configuration |
+| **API Key** | Unique key for trace ingestion |
+
+## Connection Configuration
+
+Each version can have its own connection configuration for testing:
+
+```json
+{
+  "connection_type": "azure_openai",
+  "endpoint": "https://your-resource.openai.azure.com",
+  "api_version": "2024-02-15-preview",
+  "auth": {
+    "api_key": "your-api-key",
+    "deployment": "gpt-4o"
+  },
+  "options": {
+    "temperature": 0.7,
+    "max_tokens": 1024
+  }
+}
+```
+
+Supported connection types:
+- `azure_openai` — Azure OpenAI Service
+- `openai` — OpenAI API
+- `anthropic` — Anthropic API
+- `custom_rest` — Custom REST endpoint
+
+## API Keys
+
+Each version has its own API key for trace ingestion:
+
+1. Go to **Settings** → **API Keys**
+2. Click **Generate New Key**
+3. Select the product and version
+4. Set expiration (optional)
+5. Copy and securely store the key
+
+Use this key in your application:
+
+```bash
+export IMPACT_API_KEY="your-version-api-key"
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use semantic versioning">
+    Follow semantic versioning for clarity:
+    - `v1.0.0` — Major releases
+    - `v1.1.0` — Feature additions
+    - `v1.1.1` — Bug fixes
+    
+    Or use environment names:
+    - `production`
+    - `staging`
+    - `development`
+  </Accordion>
+  
+  <Accordion title="One product per use case">
+    Create separate products for distinct use cases:
+    
+    ```
+    ✓ Customer Support Bot
+    ✓ Sales Assistant
+    ✓ Internal Knowledge Base
+    
+    ✗ All-in-One Bot (too broad)
+    ```
+  </Accordion>
+  
+  <Accordion title="Document your versions">
+    Use release notes to track what changed:
+    
+    ```
+    v2.1.0 - Upgraded to GPT-4o, added RAG pipeline
+    v2.0.0 - Complete rewrite with new prompt
+    v1.5.0 - Added function calling
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Modules" icon="puzzle-piece" href="/platform/modules">
+    Set up evaluation modules for your product
+  </Card>
+  <Card title="Connect SDK" icon="code" href="/sdk/overview">
+    Connect your application to Impact AI
+  </Card>
+</CardGroup>

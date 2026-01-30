@@ -1,100 +1,75 @@
 ---
-title: AIProductOps
-description: "Deliver Impactful AI Products"
-icon: "rectangle-code"
-iconType: "solid"
+title: Introduction
+description: "The modern platform for building, evaluating, and governing AI products"
+icon: "sparkles"
 ---
 
-<div className="relative inline-block">
-  <img
-    className="relative rounded-xl"
-    src="/images/intro.png"
-    alt="Hero Image"
-    style={{
-      boxShadow: `
-        0 0 3px 1px rgba(0, 0, 255, 0.5),
-        0 0 3px 1px rgba(0, 255, 0, 0.5),
-        0 0 3px 1px rgba(255, 255, 0, 0.5),
-        0 0 3px 1px rgba(128, 0, 128, 0.5)
-      `
-    }}
-  />
-</div>
+Impact AI is the AI product management platform that helps teams build, evaluate, and continuously improve their AI products with confidence.
 
-Impact AI is the modern AI Product Management platform designed to help teams build, refine, and deliver impactful AI products with ease.
+<img
+  className="rounded-xl"
+  src="/images/intro.png"
+  alt="Impact AI Platform"
+/>
 
-Our intelligent agents empower AI teams to streamline product workflows, ensure quality, and drive continuous improvement.
+## What is Impact AI?
 
-- **Control with Laila** - Maintain strategic oversight, enforce policies, and ensure compliance in AI product development.
-- **Manage with Max** - Oversee product management, prioritize features, and align lifecycle development with business goals.
-- **Evaluate with Iris** - Analyze AI product performance, run experiments, and quantify product improvements.
-- **Analyze with Orion** - Extract insights from AI data, conduct impact assessments, and refine decision-making.
-- **Align with Sage** - Perform contextual testing to ensure AI quality, align with business goals, and ensure products meet expected outcomes.
+Impact AI provides everything you need to take AI products from development to production:
 
-By unifying AI product workflows into a single platform, Impact AI eliminates fragmented processes, enhances collaboration, and accelerates iteration cycles.
+- **Observability** — Automatic tracing and telemetry for any GenAI application
+- **Evaluation** — Continuous quality assessment with LLM-as-a-judge and custom metrics
+- **Intelligence** — Real-time insights, trends, and alerts about your AI's performance
+- **Governance** — Policy enforcement, compliance tracking, and audit trails
 
-Our mission is to redefine AI product management by replacing outdated, manual workflows with AI-driven automation, continuous evaluation, and seamless governance—ensuring that your AI products deliver real-world impact with confidence.
+## How It Works
+
+<Steps>
+  <Step title="Connect Your Product">
+    Install the Impact SDK in your AI application. It automatically captures traces from OpenAI, Anthropic, Azure, and more.
+  </Step>
+  <Step title="Define Evaluation Modules">
+    Create evaluation criteria using Impact Studio or let our agents generate them from your product context.
+  </Step>
+  <Step title="Monitor & Improve">
+    View real-time analytics, receive alerts on quality degradation, and iterate based on insights.
+  </Step>
+</Steps>
+
+## Meet the Agents
+
+Impact AI includes five specialized agents that automate key product management workflows:
 
 <CardGroup cols={2}>
-  <Card
-    title="Impact AI Cloud"
-    icon="pen-to-square"
-    href="https://mintlify.com/docs/setup-impact"
-  >
-    Get started with Impact AI Cloud
+  <Card title="Laila" icon="shield-check" href="/agents/laila">
+    Onboarding & governance. Helps you set up products and ensures compliance with policies.
   </Card>
-  <Card
-    title="Private Cloud"
-    icon="image"
-    href="https://mintlify.com/docs/setup-private"
-  >
-    Install Impact AI on your private cloud
+  <Card title="Max" icon="clipboard-list" href="/agents/max">
+    Product management. Configures evaluation modules and manages your product lifecycle.
+  </Card>
+  <Card title="Iris" icon="flask-vial" href="/agents/iris">
+    Testing & evaluation. Runs simulations, generates synthetic users, and validates quality.
+  </Card>
+  <Card title="Orion" icon="chart-mixed" href="/agents/orion">
+    Analytics & insights. Analyzes performance data and surfaces actionable intelligence.
+  </Card>
+  <Card title="Sage" icon="bullseye" href="/agents/sage">
+    Quality alignment. Configures modules in Impact Studio to match your business goals.
   </Card>
 </CardGroup>
 
-## Next Steps
-
-Use our agents to get started with Impact AI.
+## Quick Links
 
 <CardGroup cols={2}>
-  <Card
-    href="https://mintlify.com/docs/settings/global"
-  >
-    <img 
-      src="/images/agent_1_max.png" 
-      style={{ width: '32px', height: '32px', marginBottom: '16px' }}
-    />
-    <h3 style={{ fontWeight: 'bold', fontSize: '1.25rem', marginBottom: '8px' }}>Max</h3>
-    Manage your product with Max
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get your first traces flowing in 5 minutes
   </Card>
-  <Card
-    href="https://mintlify.com/docs/api-playground/openapi"
-  >
-    <img 
-      src="/images/agent_5_iris.png" 
-      style={{ width: '32px', height: '32px', marginBottom: '16px' }}
-    />
-    <h3 style={{ fontWeight: 'bold', fontSize: '1.25rem', marginBottom: '8px' }}>Iris</h3>
-    Evaluate your product with Iris
+  <Card title="Concepts" icon="book" href="/concepts">
+    Understand the Impact AI mental model
   </Card>
-  <Card
-    href="https://mintlify.com/docs/content/components/accordions"
-  >
-    <img 
-      src="/images/agent_7_orion.png" 
-      style={{ width: '32px', height: '32px', marginBottom: '16px' }}
-    />
-    <h3 style={{ fontWeight: 'bold', fontSize: '1.25rem', marginBottom: '8px' }}>Orion</h3>
-    Analyze your product with Orion
+  <Card title="SDK Reference" icon="code" href="/sdk/overview">
+    Complete SDK documentation
   </Card>
-  <Card
-    href="https://mintlify.com/customers"
-  >
-    <img 
-      src="/images/agent_6_sage.png" 
-      style={{ width: '32px', height: '32px', marginBottom: '16px' }}
-    />
-    <h3 style={{ fontWeight: 'bold', fontSize: '1.25rem', marginBottom: '8px' }}>Sage</h3>
-    Align your product with Sage
+  <Card title="Self-Hosted" icon="server" href="/self-hosted/overview">
+    Deploy Impact AI in your own cloud
   </Card>
 </CardGroup>

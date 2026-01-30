@@ -1,0 +1,256 @@
+---
+title: Max
+description: "Product management agent"
+icon: "clipboard-list"
+---
+
+<img src="/images/agent_1_max.png" width="64" style={{marginBottom: "1rem"}} />
+
+Max is your product management agent. He helps configure evaluation modules, manages product lifecycle, and auto-generates configurations based on your product context.
+
+## What Max Does
+
+<CardGroup cols={2}>
+  <Card title="Module Configuration" icon="puzzle-piece">
+    Creates and configures evaluation modules
+  </Card>
+  <Card title="Auto-Generation" icon="wand-magic-sparkles">
+    Generates modules from product context
+  </Card>
+  <Card title="Lifecycle Management" icon="arrows-spin">
+    Manages product and version lifecycle
+  </Card>
+  <Card title="Prioritization" icon="list-ol">
+    Helps prioritize features and improvements
+  </Card>
+</CardGroup>
+
+## Auto-Generation
+
+Max's key capability is auto-generating evaluation configurations based on your product:
+
+### How It Works
+
+1. Max analyzes your product information
+2. Reviews your use case and requirements
+3. Generates appropriate evaluation modules
+4. Creates a framework structure
+
+### Triggering Auto-Generation
+
+```
+You: Generate evaluation modules for my product
+
+Max: I'll analyze your product and generate appropriate 
+evaluation modules.
+
+Based on your Customer Support Assistant:
+
+**Recommended Modules:**
+
+1. **Response Helpfulness** (Impact Eval)
+   - Does the response address the customer's question?
+   
+2. **Factual Accuracy** (Impact Eval)
+   - Is the information provided correct?
+   
+3. **Tone Appropriateness** (Impact Eval)
+   - Is the response professional and empathetic?
+   
+4. **Topic Classification** (Impact Lens)
+   - Categories: Product, Billing, Technical, Shipping, Other
+   
+5. **Resolution Detection** (Impact Eval)
+   - Was the customer's issue resolved?
+
+Should I create these modules?
+```
+
+### Customizing Generation
+
+```
+You: Can you also add a module for detecting when the bot 
+doesn't know the answer?
+
+Max: Good idea. I'll add:
+
+6. **Knowledge Gap Detection** (Impact Eval)
+   - Detects when the assistant acknowledges it doesn't 
+     have information to answer
+
+This helps identify:
+- Missing knowledge base content
+- Questions requiring human handoff
+- Training data gaps
+
+Creating all 6 modules now...
+```
+
+## Common Tasks
+
+### Creating Individual Modules
+
+```
+You: Create a module to evaluate response length
+
+Max: I'll create a "Response Conciseness" module.
+
+**Configuration:**
+- Type: Impact Eval
+- Mode: 1-5 Scale
+- Rubric:
+  5 - Perfectly concise, complete without excess
+  4 - Mostly concise with minimal verbosity
+  3 - Some unnecessary content
+  2 - Notably verbose
+  1 - Excessively long
+
+**Settings:**
+- Importance: Medium
+- Alertable: Yes (threshold: 2.5)
+
+Does this look right?
+```
+
+### Managing Module Status
+
+```
+You: Disable the sentiment analysis module
+
+Max: I'll disable the "Sentiment Analysis" module.
+
+⚠ Note: Disabling this module means:
+- No new evaluations will run
+- Existing data is preserved
+- Metrics will show historical data only
+
+Confirm disable?
+
+You: Yes
+
+Max: Done. Sentiment Analysis is now disabled. You can 
+re-enable it anytime from Impact Studio.
+```
+
+### Framework Organization
+
+```
+You: Reorganize my modules into a better structure
+
+Max: I'll suggest a framework structure based on your modules:
+
+**Quality** (Page)
+├── Response Quality (Widget)
+│   ├── Helpfulness
+│   ├── Accuracy
+│   └── Conciseness
+└── Communication (Widget)
+    ├── Tone
+    └── Clarity
+
+**Operations** (Page)
+├── Classification (Widget)
+│   ├── Topic Detection
+│   └── Intent Recognition
+└── Performance (Widget)
+    ├── Resolution Rate
+    └── Escalation Detection
+
+Should I apply this structure?
+```
+
+## Product Lifecycle
+
+### Version Management
+
+```
+You: Create a new version for A/B testing
+
+Max: I'll create a new version for A/B testing.
+
+**New Version:**
+- Name: v2.0-test
+- Based on: v1.5.0
+- Status: Draft
+
+What changes are you testing in this version?
+
+You: We're testing a new prompt template
+
+Max: Got it. I'll note that in the release notes.
+
+Created v2.0-test. To start the A/B test:
+1. Deploy the new prompt to use this version's API key
+2. Route a percentage of traffic to the new version
+3. Compare metrics between versions in Analytics
+```
+
+### Deprecation
+
+```
+You: Deprecate version 1.0
+
+Max: I'll mark v1.0 as deprecated.
+
+**Deprecation checklist:**
+✓ No active traffic (last trace: 30 days ago)
+✓ Newer version available (v1.5.0)
+⚠ 3 modules specific to this version
+
+Options:
+1. Archive v1.0 (preserves data, stops evaluation)
+2. Migrate modules to v1.5.0
+3. Delete v1.0 entirely
+
+What would you like to do?
+```
+
+## Where to Find Max
+
+Max appears in:
+- **Dashboard** — Product overview
+- **Context** — Framework configuration
+- **Products** — Version management
+- Chat accessible from most pages
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Start with auto-generation">
+    Let Max generate initial modules, then refine:
+    
+    1. Trigger auto-generation
+    2. Review suggested modules
+    3. Adjust or add modules
+    4. Deploy and iterate
+  </Accordion>
+  
+  <Accordion title="Provide context">
+    More context → better recommendations:
+    
+    ```
+    ✓ "Create a module to detect when responses cite 
+       sources incorrectly for our legal Q&A bot"
+    
+    ✗ "Create an accuracy module"
+    ```
+  </Accordion>
+  
+  <Accordion title="Use framework organization">
+    Group related modules:
+    - By evaluation type (quality, safety, ops)
+    - By business function
+    - By team responsibility
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Iris" icon="flask-vial" href="/agents/iris">
+    Test with Iris
+  </Card>
+  <Card title="Modules" icon="puzzle-piece" href="/platform/modules">
+    Learn about modules
+  </Card>
+</CardGroup>

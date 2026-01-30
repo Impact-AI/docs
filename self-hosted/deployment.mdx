@@ -1,0 +1,323 @@
+---
+title: Deployment Guide
+description: "Step-by-step guide to deploy Impact AI in your Azure environment"
+icon: "rocket"
+---
+
+This guide walks through deploying Impact AI in your own Azure subscription.
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+<Steps>
+  <Step title="Azure Subscription">
+    An Azure subscription with Owner or Contributor access
+  </Step>
+  <Step title="Azure CLI">
+    Azure CLI installed and authenticated:
+    ```bash
+    az login
+    az account show
+    ```
+  </Step>
+  <Step title="GitHub CLI">
+    GitHub CLI for workflow management:
+    ```bash
+    gh auth login
+    ```
+  </Step>
+  <Step title="Domain">
+    A domain for your instance (e.g., `yourcompany.impact.ai`)
+  </Step>
+</Steps>
+
+## Deployment Methods
+
+### Method 1: GitHub Actions (Recommended)
+
+Deploy using automated GitHub workflows.
+
+#### Step 1: Configure Environment
+
+Set your environment variables:
+
+```bash
+# Set variables
+export ENVIRONMENT=production
+export SUBSCRIPTION_ID=your-subscription-id
+export RESOURCE_GROUP=rg-impact-$ENVIRONMENT
+export LOCATION=swedencentral
+```
+
+#### Step 2: Create GitHub Environment
+
+```bash
+# Create GitHub environment
+gh api repos/:owner/:repo/environments/$ENVIRONMENT --method PUT
+
+# Set environment variables
+gh variable set SUBSCRIPTION_ID --env $ENVIRONMENT --body "$SUBSCRIPTION_ID"
+gh variable set RESOURCE_GROUP --env $ENVIRONMENT --body "$RESOURCE_GROUP"
+gh variable set LOCATION --env $ENVIRONMENT --body "$LOCATION"
+```
+
+#### Step 3: Run Provision Workflow
+
+Trigger the provisioning workflow:
+
+1. Go to **GitHub Actions** → **Provision Environment**
+2. Click **Run workflow**
+3. Fill in the inputs:
+   - `environment`: Your environment name
+   - `subscription_id`: Your Azure subscription ID
+   - `location`: Azure region (e.g., `swedencentral`)
+4. Click **Run workflow**
+
+The workflow will:
+- Create the resource group
+- Deploy all infrastructure components
+- Configure networking and security
+- Set up the database schema
+
+#### Step 4: Finalize Setup
+
+After provisioning completes:
+
+```bash
+# Run finalization script
+./platform/finalize.sh
+```
+
+This configures:
+- DNS records
+- SSL certificates
+- Initial admin user
+
+#### Step 5: Deploy Applications
+
+1. Go to **GitHub Actions** → **Deploy Applications**
+2. Select your environment
+3. Click **Run workflow**
+
+### Method 2: Manual Deployment
+
+For more control, deploy manually via CLI.
+
+#### Step 1: Create Resource Group
+
+```bash
+az login
+az account set --subscription "$SUBSCRIPTION_ID"
+az group create --name "$RESOURCE_GROUP" --location "$LOCATION"
+```
+
+#### Step 2: Deploy Infrastructure
+
+```bash
+# Deploy main Bicep template
+az deployment group create \
+  --resource-group "$RESOURCE_GROUP" \
+  --template-file platform/main.bicep \
+  --parameters environment="$ENVIRONMENT" location="$LOCATION"
+```
+
+#### Step 3: Run Finalization
+
+```bash
+./platform/finalize.sh
+```
+
+#### Step 4: Deploy Services
+
+Build and deploy each service:
+
+```bash
+# Build container images
+docker build -t impact-frontend ./apps/intelligence
+docker build -t impact-chat ./services/chat
+# ... repeat for other services
+
+# Push to ACR
+az acr login --name your-acr
+docker tag impact-frontend your-acr.azurecr.io/impact-frontend
+docker push your-acr.azurecr.io/impact-frontend
+```
+
+## Configuration
+
+### Environment Variables
+
+Key configuration settings:
+
+| Variable | Description |
+|----------|-------------|
+| `POSTGRES_CONFIG` | PostgreSQL connection JSON |
+| `REDIS_CONFIG` | Redis connection JSON |
+| `AZURE_AI_CONFIG` | Azure AI Foundry configuration |
+| `ENTRA_CONFIG` | Entra ID authentication |
+
+### Secrets Management
+
+Secrets are stored in Azure Key Vault:
+
+```bash
+# View secrets
+az keyvault secret list --vault-name kv-impact-$ENVIRONMENT
+
+# Set a secret
+az keyvault secret set \
+  --vault-name kv-impact-$ENVIRONMENT \
+  --name "MySecret" \
+  --value "secret-value"
+```
+
+### Network Configuration
+
+#### Private Endpoints
+
+All services use private endpoints by default:
+
+```bash
+# Verify private endpoints
+az network private-endpoint list \
+  --resource-group "$RESOURCE_GROUP" \
+  --output table
+```
+
+#### VPN Access
+
+For administrative access:
+
+```bash
+# Set up VPN
+./operations/setup-vpn.sh
+```
+
+## Post-Deployment
+
+### Verify Deployment
+
+Check that all services are running:
+
+```bash
+# Check Container Apps
+az containerapp list \
+  --resource-group "$RESOURCE_GROUP" \
+  --output table
+
+# Check health endpoints
+curl https://$ENVIRONMENT.impact.ai/health
+```
+
+### Create Admin User
+
+```bash
+# Create initial admin
+az ad user create \
+  --display-name "Impact Admin" \
+  --user-principal-name admin@yourdomain.com \
+  --password "SecurePassword123!"
+```
+
+### Configure DNS
+
+Point your domain to the Container Apps environment:
+
+```
+Type: CNAME
+Name: your-environment
+Value: your-cae.azurecontainerapps.io
+```
+
+## Updating
+
+### Application Updates
+
+Deploy new versions via GitHub Actions:
+
+1. Merge changes to main branch
+2. Run **Deploy Applications** workflow
+3. Select target environment
+
+### Infrastructure Updates
+
+Update infrastructure components:
+
+```bash
+# Pull latest infrastructure
+git pull origin main
+
+# Re-run deployment
+az deployment group create \
+  --resource-group "$RESOURCE_GROUP" \
+  --template-file platform/main.bicep \
+  --parameters environment="$ENVIRONMENT"
+```
+
+## Deleting an Environment
+
+<Warning>
+  This permanently deletes all data. Ensure you have backups.
+</Warning>
+
+```bash
+# Delete resource group
+az group delete --name "$RESOURCE_GROUP" --yes --no-wait
+
+# Clean up GitHub environment
+gh api repos/:owner/:repo/environments/$ENVIRONMENT --method DELETE
+
+# Clean up Entra app
+az ad app list --filter "displayName eq 'impact-client-$ENVIRONMENT'" \
+  --query "[0].appId" -o tsv | xargs -I{} az ad app delete --id {}
+
+# Purge soft-deleted resources
+./operations/purge-soft-deleted.sh
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Deployment fails with permission error">
+    Ensure you have Owner or Contributor access:
+    ```bash
+    az role assignment list --assignee your-email@company.com
+    ```
+  </Accordion>
+  
+  <Accordion title="Container Apps not starting">
+    Check logs:
+    ```bash
+    az containerapp logs show \
+      --name your-app \
+      --resource-group "$RESOURCE_GROUP" \
+      --follow
+    ```
+  </Accordion>
+  
+  <Accordion title="Database connection fails">
+    Verify private endpoint:
+    ```bash
+    az network private-endpoint show \
+      --name pe-postgres \
+      --resource-group "$RESOURCE_GROUP"
+    ```
+  </Accordion>
+  
+  <Accordion title="SSL certificate issues">
+    Check managed certificate status:
+    ```bash
+    az containerapp env certificate list \
+      --name your-cae \
+      --resource-group "$RESOURCE_GROUP"
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Support
+
+For deployment assistance:
+- **Enterprise customers**: Contact your account manager
+- **Email**: support@impact.ai
+- **Documentation**: Check `/infrastructure` README files

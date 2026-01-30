@@ -1,0 +1,204 @@
+---
+title: Laila
+description: "Onboarding and governance agent"
+icon: "shield-check"
+---
+
+<img src="/images/agent_0_laila.png" width="64" style={{marginBottom: "1rem"}} />
+
+Laila is your onboarding and governance agent. She guides you through product setup, ensures compliance with policies, and helps manage product documentation.
+
+## What Laila Does
+
+<CardGroup cols={2}>
+  <Card title="Product Onboarding" icon="plus">
+    Guides you through adding new AI products to Impact AI
+  </Card>
+  <Card title="Configuration" icon="gear">
+    Helps configure connections, settings, and integrations
+  </Card>
+  <Card title="Compliance" icon="shield">
+    Ensures products meet governance policies
+  </Card>
+  <Card title="Documentation" icon="file-lines">
+    Manages product documentation and knowledge
+  </Card>
+</CardGroup>
+
+## Onboarding Flow
+
+Laila guides you through a structured onboarding process:
+
+### Interview Phase
+
+Laila starts by understanding your product:
+
+```
+Laila: Hi! I'm Laila, and I'll help you set up your AI product 
+in Impact AI. Let's start with some questions.
+
+What's the name of your AI product?
+
+You: Customer Support Assistant
+
+Laila: Great! What does the Customer Support Assistant do?
+
+You: It helps customers with product questions, troubleshooting, 
+and order inquiries.
+
+Laila: Perfect. What AI model or service powers it?
+
+You: We use Azure OpenAI with GPT-4o
+```
+
+### Information Gathering
+
+Laila collects:
+- **Product Information** — Name, description, use case
+- **Technical Information** — Model, endpoint, configuration
+- **Knowledge Information** — Documentation, integrations
+
+### Setup Assistance
+
+After the interview, Laila helps configure:
+- Product settings
+- Version configuration
+- Knowledge sources
+- Evaluation modules
+
+## Common Tasks
+
+### Adding a New Product
+
+```
+You: I want to add a new AI product
+
+Laila: I'll help you set up your new product. Let me ask a few 
+questions to understand what you're building.
+
+What type of AI product is this?
+- Chatbot / Conversational AI
+- Agent with tools
+- RAG / Document Q&A
+- Other
+
+You: It's a RAG system for our knowledge base
+
+Laila: Got it. A RAG system typically involves:
+- A retrieval component (vector search)
+- A generation component (LLM)
+
+What LLM are you using for generation?
+```
+
+### Configuring Connections
+
+```
+You: I need to set up the connection to my AI endpoint
+
+Laila: I'll help you configure the connection. What type of 
+endpoint are you connecting to?
+
+- Azure OpenAI
+- OpenAI API
+- Anthropic
+- Custom REST API
+
+You: Azure OpenAI
+
+Laila: For Azure OpenAI, I'll need:
+1. Endpoint URL (e.g., https://your-resource.openai.azure.com)
+2. API Key
+3. Deployment name
+4. API version
+
+Do you have these ready?
+```
+
+### Managing Documentation
+
+```
+You: I want to upload our product documentation
+
+Laila: I can help you manage documentation. You can upload:
+- Product Documents (PRDs, specs)
+- Technical Documents (API docs, architecture)
+- Guides (user guides, FAQs)
+- Research (analysis, interviews)
+
+Drag and drop files or click to upload. I'll automatically 
+categorize them based on content.
+```
+
+## Governance Features
+
+### Policy Compliance
+
+Laila checks products against governance policies:
+
+```
+Laila: I've reviewed your product configuration. Here are some 
+compliance notes:
+
+✓ Data handling complies with privacy policy
+✓ Model usage within approved list
+⚠ Missing: Data retention policy configuration
+⚠ Missing: PII handling documentation
+
+Would you like help addressing these items?
+```
+
+### Audit Trail
+
+Laila maintains records of:
+- Configuration changes
+- Policy checks
+- Compliance status
+- Approval history
+
+## Where to Find Laila
+
+Laila appears in:
+- **Add Product** flow
+- **Onboarding** section
+- **Governance** pages
+- **Settings** → **Compliance**
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Prepare information beforehand">
+    Have ready:
+    - Product name and description
+    - Technical details (endpoint, model)
+    - Documentation files
+    - Team/owner information
+  </Accordion>
+  
+  <Accordion title="Be thorough in the interview">
+    Laila's questions help Impact AI:
+    - Configure appropriate defaults
+    - Generate relevant modules
+    - Set up proper monitoring
+    
+    More detail → better setup
+  </Accordion>
+  
+  <Accordion title="Review compliance suggestions">
+    Laila's compliance checks help ensure:
+    - Policy adherence
+    - Best practice alignment
+    - Audit readiness
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Max" icon="clipboard-list" href="/agents/max">
+    Configure evaluation with Max
+  </Card>
+  <Card title="Products" icon="cube" href="/platform/products">
+    Learn about product structure
+  </Card>
+</CardGroup>

@@ -1,0 +1,10 @@
+# Ignore source code repositories
+apps/
+services/
+infrastructure/
+impact-sdk/
+
+# Ignore other non-doc files
+api-reference/openapi.json
+*.json
+!docs.json

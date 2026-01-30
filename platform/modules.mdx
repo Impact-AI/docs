@@ -1,0 +1,248 @@
+---
+title: Modules
+description: "Define evaluation criteria for your AI product"
+icon: "puzzle-piece"
+---
+
+Modules are the core of Impact AI's evaluation system. They define *what* you measure about your AI's performance and *how* you measure it.
+
+## What is a Module?
+
+A **Module** is an evaluation criterion or metric definition. When traces flow into Impact AI, modules automatically evaluate each interaction and produce metrics.
+
+Examples of modules:
+- **Response Helpfulness** — Does the response answer the user's question?
+- **Hallucination Detection** — Is the response factually grounded?
+- **Topic Classification** — What topic is the conversation about?
+- **Tone Appropriateness** — Is the tone professional and helpful?
+
+## Module Types
+
+Impact AI supports two primary module types:
+
+### Impact Eval
+
+LLM-as-a-judge evaluation that scores or grades AI outputs.
+
+**Evaluation Modes:**
+- **1-5 Scale** — Numeric score with defined rubric
+- **Pass/Fail** — Binary assessment
+- **Custom Rubric** — Your own scoring criteria
+
+**Output:**
+- Score (numeric or boolean)
+- Confidence level
+- Reasoning/explanation
+- Component analysis
+
+**Use Cases:**
+- Quality assessment
+- Compliance checking
+- Response validation
+- Performance scoring
+
+### Impact Lens
+
+Classification and tagging that categorizes AI interactions.
+
+**Tagging Modes:**
+- **Single Label** — One category per interaction
+- **Multi-Label** — Multiple tags per interaction
+- **Hierarchical** — Nested category structure
+
+**Output:**
+- Tag(s) assigned
+- Confidence scores
+- Tag distribution over time
+
+**Use Cases:**
+- Topic detection
+- Intent classification
+- Sentiment analysis
+- Issue categorization
+
+## Creating Modules
+
+### Via Impact Studio
+
+The recommended way to create modules is through [Impact Studio](/platform/impact-studio):
+
+1. Navigate to **Impact Studio** in the sidebar
+2. Click **Create Module**
+3. Choose module type (Eval or Lens)
+4. Configure with AI assistance from [Sage](/agents/sage)
+5. Test and deploy
+
+### Via Max Agent
+
+[Max](/agents/max) can auto-generate modules based on your product context:
+
+1. Chat with Max
+2. Describe what you want to evaluate
+3. Max creates appropriate modules
+
+## Module Configuration
+
+Each module has configuration options:
+
+```json
+{
+  "name": "Response Helpfulness",
+  "type": "impact-eval",
+  "description": "Evaluates if the response addresses the user's question",
+  "config": {
+    "evaluation_mode": "one_to_five",
+    "rubric": {
+      "5": "Fully addresses the question with accurate, comprehensive information",
+      "4": "Mostly addresses the question with minor gaps",
+      "3": "Partially addresses the question",
+      "2": "Tangentially related but doesn't answer the question",
+      "1": "Completely fails to address the question"
+    },
+    "importance": "high",
+    "alertable": true,
+    "starred": true
+  }
+}
+```
+
+### Configuration Options
+
+| Option | Description |
+|--------|-------------|
+| `name` | Display name for the module |
+| `type` | `impact-eval` or `impact-lens` |
+| `description` | What the module evaluates |
+| `evaluation_mode` | Scoring method |
+| `rubric` | Scoring criteria definitions |
+| `importance` | High, Medium, Low |
+| `alertable` | Enable alerts for this module |
+| `starred` | Show in key metrics |
+
+## Module Status
+
+Modules can be in different states:
+
+| Status | Description |
+|--------|-------------|
+| **Active** | Running evaluations |
+| **Disabled** | Paused, not evaluating |
+| **Draft** | Being configured, not deployed |
+
+## Metrics
+
+Each module produces metrics that aggregate evaluation results:
+
+### Result Metric
+
+The primary aggregated score:
+
+- **Impact Eval**: Average score, pass rate, distribution
+- **Impact Lens**: Tag counts, distribution percentages
+
+### Supporting Metrics
+
+| Metric | Description |
+|--------|-------------|
+| **Flag** | Boolean indicator for thresholds |
+| **Alert** | Triggered when metrics cross boundaries |
+| **Confidence** | Aggregated evaluation confidence |
+| **Interactions** | Count of evaluated interactions |
+
+## Alerts
+
+Configure alerts to notify when metrics cross thresholds:
+
+```json
+{
+  "alertable": true,
+  "alert_config": {
+    "threshold": 3.0,
+    "direction": "below",
+    "window": "24h"
+  }
+}
+```
+
+When the average score drops below 3.0 in a 24-hour window, an alert is triggered.
+
+## Module Organization
+
+### Pages and Widgets
+
+Modules are organized into a hierarchy:
+
+```
+Page (e.g., "Quality")
+└── Widget (e.g., "Response Quality")
+    ├── Module (e.g., "Helpfulness")
+    ├── Module (e.g., "Accuracy")
+    └── Module (e.g., "Completeness")
+```
+
+This structure:
+- Groups related evaluations
+- Enables aggregated metrics at widget/page level
+- Organizes the dashboard view
+
+### Framework
+
+The evaluation framework defines your overall structure:
+
+- **Pages** — Top-level categories
+- **Widgets** — Groupings within pages
+- **Modules** — Individual evaluations
+
+Configure your framework in **Context** → **Framework**.
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Start with key metrics">
+    Focus on the most important evaluations first:
+    
+    1. Response quality/helpfulness
+    2. Factual accuracy/hallucination
+    3. Safety/compliance
+    4. Domain-specific criteria
+  </Accordion>
+  
+  <Accordion title="Write clear rubrics">
+    Good rubrics are specific and actionable:
+    
+    ```
+    ✓ "Response fully addresses the question with accurate information"
+    ✗ "Good response"
+    
+    ✓ "Contains factual errors or unverifiable claims"
+    ✗ "Bad"
+    ```
+  </Accordion>
+  
+  <Accordion title="Use appropriate granularity">
+    Don't over-evaluate. Focus on:
+    
+    - Metrics you'll actually act on
+    - Evaluations that drive improvements
+    - Criteria important to your use case
+  </Accordion>
+  
+  <Accordion title="Calibrate regularly">
+    Review and adjust modules based on:
+    
+    - Human agreement with evaluations
+    - False positive/negative rates
+    - Business relevance of metrics
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Impact Studio" icon="wand-magic-sparkles" href="/platform/impact-studio">
+    Build modules with AI assistance
+  </Card>
+  <Card title="Intelligence" icon="chart-mixed" href="/platform/intelligence">
+    View metrics and insights
+  </Card>
+</CardGroup>

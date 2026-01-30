@@ -1,0 +1,165 @@
+---
+title: Self-Hosted Overview
+description: "Deploy Impact AI in your own cloud infrastructure"
+icon: "server"
+---
+
+Impact AI can be deployed in your own Azure environment for organizations requiring data residency, compliance, or network isolation.
+
+## Deployment Options
+
+<CardGroup cols={2}>
+  <Card title="Impact AI Cloud" icon="cloud">
+    Fully managed SaaS deployment. No infrastructure to manage.
+  </Card>
+  <Card title="Self-Hosted" icon="server">
+    Deploy in your Azure subscription with full control.
+  </Card>
+</CardGroup>
+
+## Why Self-Host?
+
+Self-hosting is ideal when you need:
+
+| Requirement | Self-Hosted Benefit |
+|-------------|---------------------|
+| **Data Residency** | Data stays in your subscription |
+| **Network Isolation** | VNet integration, private endpoints |
+| **Compliance** | Meet specific regulatory requirements |
+| **Customization** | Configure infrastructure to your needs |
+| **Control** | Full ownership of resources |
+
+## Architecture Overview
+
+Self-hosted Impact AI runs on Azure with these core components:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Your Azure Subscription               │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
+│  │  Frontend   │  │  Services   │  │    AI       │    │
+│  │  (Next.js)  │  │  (FastAPI)  │  │  Foundry    │    │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘    │
+│         │                │                │            │
+│         └────────┬───────┴────────┬───────┘            │
+│                  │                │                     │
+│         ┌───────┴────────┐ ┌─────┴──────┐             │
+│         │   PostgreSQL   │ │   Redis    │             │
+│         └────────────────┘ └────────────┘             │
+│                                                         │
+│  ┌─────────────────────────────────────────────────┐  │
+│  │              Virtual Network                     │  │
+│  │         (Private Endpoints)                      │  │
+│  └─────────────────────────────────────────────────┘  │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Core Components
+
+### Compute
+
+| Component | Service | Purpose |
+|-----------|---------|---------|
+| Frontend | Container Apps | Next.js web application |
+| Backend Services | Container Apps | Python microservices |
+| Background Jobs | Container Apps | Data processing |
+
+### Data
+
+| Component | Service | Purpose |
+|-----------|---------|---------|
+| Primary Database | PostgreSQL Flexible Server | Structured data storage |
+| Cache | Redis Cache | Session and intelligence cache |
+| Object Storage | Blob Storage | Documents and artifacts |
+
+### AI
+
+| Component | Service | Purpose |
+|-----------|---------|---------|
+| LLM Access | Azure AI Foundry | GPT-4o, Claude, etc. |
+| Search | Azure AI Search | Vector search for RAG |
+
+### Networking
+
+| Component | Service | Purpose |
+|-----------|---------|---------|
+| Virtual Network | VNet | Network isolation |
+| Private Endpoints | Private Link | Secure service access |
+| VPN Gateway | VPN | Secure admin access |
+
+### Security
+
+| Component | Service | Purpose |
+|-----------|---------|---------|
+| Secrets | Key Vault | Credential management |
+| Identity | Entra ID | Authentication |
+| Configuration | App Configuration | Runtime configuration |
+
+## Prerequisites
+
+Before deploying, ensure you have:
+
+- **Azure Subscription** with Owner access
+- **Azure CLI** installed and authenticated
+- **GitHub** access for deployment workflows
+- **Domain** for your Impact AI instance
+
+### Required Permissions
+
+- Resource Group creation
+- Entra ID application registration
+- Container Apps Environment creation
+- PostgreSQL Flexible Server creation
+- Key Vault creation
+
+### Resource Requirements
+
+| Resource | Minimum | Recommended |
+|----------|---------|-------------|
+| vCPUs | 8 | 16 |
+| Memory | 16 GB | 32 GB |
+| Storage | 100 GB | 500 GB |
+| PostgreSQL | B2s | D2s_v3 |
+| Redis | Basic | Standard |
+
+## Supported Regions
+
+Deploy in any Azure region that supports:
+- Container Apps
+- PostgreSQL Flexible Server
+- Azure AI Foundry
+
+Recommended: `swedencentral`, `eastus`, `westeurope`
+
+## Deployment Channels
+
+### Standard Deployment
+
+Deploy via GitHub Actions for full control:
+
+1. Fork the infrastructure repository
+2. Configure GitHub environment
+3. Run deployment workflow
+4. Access your instance
+
+### Azure Marketplace
+
+Coming soon: One-click deployment from Azure Marketplace.
+
+### Lighthouse (MSP)
+
+For managed service providers, deploy into customer subscriptions with delegated access.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Deployment Guide" icon="rocket" href="/self-hosted/deployment">
+    Step-by-step deployment instructions
+  </Card>
+  <Card title="Contact Sales" icon="envelope" href="mailto:sales@impact.ai">
+    Get help with enterprise deployment
+  </Card>
+</CardGroup>

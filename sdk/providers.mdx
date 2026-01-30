@@ -1,0 +1,328 @@
+---
+title: Supported Providers
+description: "AI providers automatically instrumented by the Impact SDK"
+icon: "plug"
+---
+
+The Impact AI SDK automatically instruments all major GenAI providers. No additional configuration required — just import the SDK and initialize.
+
+## Supported Providers
+
+<CardGroup cols={2}>
+  <Card title="OpenAI" icon="robot">
+    `openai` package — GPT-4, GPT-4o, o1, etc.
+  </Card>
+  <Card title="Azure OpenAI" icon="microsoft">
+    `openai` or `azure-ai-inference` packages
+  </Card>
+  <Card title="Anthropic" icon="message">
+    `anthropic` package — Claude 3.5, Claude 3, etc.
+  </Card>
+  <Card title="Google GenAI" icon="google">
+    `google-generativeai` package — Gemini models
+  </Card>
+  <Card title="Google Vertex AI" icon="cloud">
+    `vertexai` package — Gemini on Vertex
+  </Card>
+  <Card title="AWS Bedrock" icon="aws">
+    `boto3` package — Claude, Titan, Llama on AWS
+  </Card>
+  <Card title="Ollama" icon="server">
+    `ollama` package — Local models
+  </Card>
+  <Card title="Mistral" icon="wind">
+    `mistralai` package — Mistral models
+  </Card>
+  <Card title="Cohere" icon="c">
+    `cohere` package — Command models
+  </Card>
+  <Card title="Groq" icon="bolt">
+    `groq` package — Fast inference
+  </Card>
+  <Card title="LlamaIndex" icon="llama">
+    `llama-index` package — RAG framework
+  </Card>
+  <Card title="OpenAI Agents" icon="users">
+    `openai-agents` package — Agents SDK
+  </Card>
+</CardGroup>
+
+## Usage Examples
+
+### OpenAI
+
+```python
+from openai import OpenAI
+from impact.sdk import init
+
+init()
+
+client = OpenAI()
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
+
+**Captured data:**
+- Model name and parameters
+- Input messages
+- Output response and tokens
+- Latency and cost
+
+### Azure OpenAI
+
+```python
+from openai import AzureOpenAI
+from impact.sdk import init
+
+init()
+
+client = AzureOpenAI(
+    azure_endpoint="https://your-resource.openai.azure.com",
+    api_version="2024-02-15-preview"
+)
+
+response = client.chat.completions.create(
+    model="gpt-4o",  # deployment name
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
+
+### Anthropic
+
+```python
+from anthropic import Anthropic
+from impact.sdk import init
+
+init()
+
+client = Anthropic()
+response = client.messages.create(
+    model="claude-3-5-sonnet-20241022",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
+
+### Google GenAI
+
+```python
+import google.generativeai as genai
+from impact.sdk import init
+
+init()
+
+genai.configure(api_key="your-api-key")
+model = genai.GenerativeModel("gemini-1.5-pro")
+response = model.generate_content("Hello!")
+```
+
+### Google Vertex AI
+
+```python
+import vertexai
+from vertexai.generative_models import GenerativeModel
+from impact.sdk import init
+
+init()
+
+vertexai.init(project="your-project", location="us-central1")
+model = GenerativeModel("gemini-1.5-pro")
+response = model.generate_content("Hello!")
+```
+
+### AWS Bedrock
+
+```python
+import boto3
+import json
+from impact.sdk import init
+
+init()
+
+client = boto3.client("bedrock-runtime", region_name="us-east-1")
+response = client.invoke_model(
+    modelId="anthropic.claude-3-sonnet-20240229-v1:0",
+    body=json.dumps({
+        "anthropic_version": "bedrock-2023-05-31",
+        "messages": [{"role": "user", "content": "Hello!"}],
+        "max_tokens": 1024
+    })
+)
+```
+
+### Ollama
+
+```python
+import ollama
+from impact.sdk import init
+
+init()
+
+response = ollama.chat(
+    model="llama3.2",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
+
+### Mistral
+
+```python
+from mistralai import Mistral
+from impact.sdk import init
+
+init()
+
+client = Mistral(api_key="your-api-key")
+response = client.chat.complete(
+    model="mistral-large-latest",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
+
+### LlamaIndex
+
+```python
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
+from impact.sdk import init
+
+init()
+
+documents = SimpleDirectoryReader("data").load_data()
+index = VectorStoreIndex.from_documents(documents)
+query_engine = index.as_query_engine()
+response = query_engine.query("What is this about?")
+```
+
+**Captured data:**
+- Retrieval queries and results
+- LLM calls within the pipeline
+- Embedding operations
+
+### OpenAI Agents SDK
+
+```python
+from openai import OpenAI
+from openai.agents import Agent, Runner
+from impact.sdk import init
+
+init()
+
+client = OpenAI()
+agent = Agent(
+    name="assistant",
+    instructions="You are a helpful assistant.",
+    model="gpt-4o"
+)
+
+runner = Runner(agent=agent, client=client)
+result = runner.run("Hello!")
+```
+
+**Captured data:**
+- Agent configuration
+- Tool calls and results
+- Multi-turn reasoning
+
+## Streaming Support
+
+All providers support streaming with full trace capture:
+
+```python
+from openai import OpenAI
+from impact.sdk import init
+
+init()
+
+client = OpenAI()
+stream = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Hello!"}],
+    stream=True
+)
+
+for chunk in stream:
+    print(chunk.choices[0].delta.content or "", end="")
+```
+
+The SDK captures the complete response even when streaming.
+
+## Tool/Function Calling
+
+Tool calls are automatically captured:
+
+```python
+from openai import OpenAI
+from impact.sdk import init
+
+init()
+
+tools = [{
+    "type": "function",
+    "function": {
+        "name": "get_weather",
+        "parameters": {"type": "object", "properties": {"location": {"type": "string"}}}
+    }
+}]
+
+client = OpenAI()
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "What's the weather in Paris?"}],
+    tools=tools
+)
+```
+
+**Captured data:**
+- Tool definitions
+- Tool call arguments
+- Tool results (when provided)
+
+## Custom HTTP Clients
+
+If you use a custom HTTP client instead of the official SDK, traces won't be captured automatically. Use the `@trace` decorator:
+
+```python
+import httpx
+from impact.sdk import init, trace
+
+init()
+
+@trace(name="custom_llm_call", type="gen_ai.chat")
+def call_custom_api(prompt: str) -> str:
+    response = httpx.post(
+        "https://custom-llm-api.com/generate",
+        json={"prompt": prompt}
+    )
+    return response.json()["text"]
+```
+
+## Disabling Auto-Instrumentation
+
+To disable auto-instrumentation for a specific provider, set the environment variable before importing:
+
+```bash
+export OTEL_PYTHON_DISABLED_INSTRUMENTATIONS=openai
+```
+
+Or disable programmatically:
+
+```python
+import os
+os.environ["OTEL_PYTHON_DISABLED_INSTRUMENTATIONS"] = "openai,anthropic"
+
+from impact.sdk import init
+init()
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Custom Tracing" icon="route" href="/sdk/tracing">
+    Add custom spans for unsupported providers
+  </Card>
+  <Card title="Modules" icon="puzzle-piece" href="/platform/modules">
+    Set up evaluation for your traces
+  </Card>
+</CardGroup>

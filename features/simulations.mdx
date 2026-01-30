@@ -1,0 +1,363 @@
+---
+title: Simulations
+description: "Run automated test scenarios against your AI product"
+icon: "play"
+---
+
+Simulations are automated test suites that systematically evaluate your AI product by running predefined scenarios and measuring performance.
+
+## What Are Simulations?
+
+Simulations combine:
+- **Synthetic users** — AI-generated test users
+- **Test scenarios** — Predefined interaction patterns
+- **Evaluation** — Automated quality assessment
+- **Analysis** — Results aggregation and insights
+
+## Why Run Simulations?
+
+<CardGroup cols={2}>
+  <Card title="Pre-Release Testing" icon="clipboard-check">
+    Validate quality before deploying changes
+  </Card>
+  <Card title="Regression Detection" icon="bug">
+    Catch issues introduced by updates
+  </Card>
+  <Card title="Coverage Testing" icon="bullseye">
+    Ensure all scenarios are handled
+  </Card>
+  <Card title="Performance Baseline" icon="chart-line">
+    Establish and track quality benchmarks
+  </Card>
+</CardGroup>
+
+## Creating Simulations
+
+### Via Iris Agent
+
+```
+You: Create a simulation suite for our support bot
+
+Iris: I'll create a comprehensive simulation suite.
+
+**Simulation: Support Bot Quality**
+
+**Components:**
+1. **Happy Path Tests** (100 scenarios)
+   - Common questions answered correctly
+   - Standard workflows completed
+
+2. **Edge Case Tests** (50 scenarios)
+   - Unusual inputs
+   - Complex multi-turn conversations
+   - Off-topic handling
+
+3. **Persona Tests** (5 personas × 20 scenarios)
+   - New users
+   - Frustrated customers
+   - Technical users
+   - Casual browsers
+   - VIP customers
+
+4. **Adversarial Tests** (30 scenarios)
+   - Prompt injection attempts
+   - Inappropriate requests
+   - Out-of-scope questions
+
+**Total: 280 scenarios**
+
+Ready to run?
+```
+
+### Configuration Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| Scenarios | Number of test scenarios | 100 |
+| Personas | User personas to include | All |
+| Topics | Topics to cover | All |
+| Turns | Conversation length range | 1-5 |
+| Parallel | Concurrent executions | 10 |
+
+## Simulation Types
+
+### Regression Simulation
+
+Tests that same-version quality is maintained:
+
+```
+You: Run regression tests
+
+Iris: Running regression simulation...
+
+**Test Suite:** Standard Regression (v1.5.0)
+**Baseline:** Previous run (Jan 25, 2025)
+
+**Progress:** ████████████████████ 100%
+
+**Results:**
+
+| Metric | Baseline | Current | Δ |
+|--------|----------|---------|---|
+| Avg Score | 4.2 | 4.1 | -2.4% |
+| Pass Rate | 92% | 90% | -2% |
+| Edge Cases | 85% | 83% | -2% |
+
+**Status:** ⚠ Minor Regression Detected
+
+**Details:**
+- 3 previously passing scenarios now failing
+- All in "technical questions" category
+
+Investigate failing scenarios?
+```
+
+### A/B Simulation
+
+Compare two versions:
+
+```
+You: Compare v1.5 and v2.0 with simulation
+
+Iris: Running A/B simulation...
+
+**Test Suite:** Version Comparison
+**Scenarios:** 200 (identical for both)
+
+**Progress:** ████████████████████ 100%
+
+**Results:**
+
+| Metric | v1.5 | v2.0 | Winner |
+|--------|------|------|--------|
+| Quality Score | 4.1 | 4.4 | v2.0 ✓ |
+| Response Time | 1.1s | 1.3s | v1.5 |
+| Pass Rate | 88% | 93% | v2.0 ✓ |
+| Edge Cases | 80% | 88% | v2.0 ✓ |
+
+**Statistical Significance:** Yes (p < 0.01)
+
+**Recommendation:** v2.0 shows significant quality 
+improvement. Latency increase is minor.
+```
+
+### Coverage Simulation
+
+Ensure all scenarios are tested:
+
+```
+You: Run coverage simulation
+
+Iris: Running coverage analysis...
+
+**Coverage Report:**
+
+**Topics:**
+| Topic | Scenarios | Coverage |
+|-------|-----------|----------|
+| Product | 45 | 95% ✓ |
+| Billing | 32 | 90% ✓ |
+| Technical | 28 | 75% ⚠ |
+| Shipping | 22 | 85% ✓ |
+| Returns | 18 | 80% ✓ |
+
+**Personas:**
+| Persona | Scenarios | Coverage |
+|---------|-----------|----------|
+| New User | 30 | 100% ✓ |
+| Frustrated | 25 | 100% ✓ |
+| Technical | 15 | 60% ⚠ |
+
+**Gaps Identified:**
+1. Technical topic needs more scenarios
+2. Technical persona under-tested
+
+Generate additional scenarios?
+```
+
+### Stress Simulation
+
+Test under high load:
+
+```
+You: Run stress test
+
+Iris: Running stress simulation...
+
+**Configuration:**
+- Concurrent users: 100
+- Duration: 10 minutes
+- Ramp-up: 2 minutes
+
+**Progress:** ████████████████████ 100%
+
+**Results:**
+
+| Metric | Baseline | Stress | Δ |
+|--------|----------|--------|---|
+| Latency (p50) | 1.2s | 1.8s | +50% |
+| Latency (p99) | 2.1s | 5.2s | +148% |
+| Error Rate | 0.1% | 2.3% | ⚠ |
+| Quality Score | 4.2 | 4.0 | -5% |
+
+**Observations:**
+- Quality degrades under load
+- Error rate spikes at >80 concurrent users
+- p99 latency exceeds SLA at peak
+
+**Recommendation:**
+Consider scaling infrastructure before 
+high-traffic periods.
+```
+
+## Running Simulations
+
+### Quick Run
+
+Fast validation with subset of scenarios:
+
+```
+You: Quick simulation check
+
+Iris: Running quick simulation (50 scenarios)...
+
+**Progress:** ████████████████████ 100%
+
+**Summary:**
+- Pass Rate: 94%
+- Avg Score: 4.3/5
+- Issues: 3 edge case failures
+
+Quick check passed. ✓
+```
+
+### Full Run
+
+Comprehensive test suite:
+
+```
+You: Run full simulation suite
+
+Iris: Running full simulation...
+
+**Suite:** Comprehensive Quality
+**Scenarios:** 500
+**Estimated Time:** 15 minutes
+
+**Progress:** ████████████████████ 100%
+
+**Full Report Available:**
+- Quality metrics
+- Category breakdown
+- Persona analysis
+- Edge case report
+- Trend comparison
+
+View detailed report?
+```
+
+### Scheduled Runs
+
+Configure automatic simulation runs:
+
+| Schedule | Use Case |
+|----------|----------|
+| Daily | Continuous monitoring |
+| Pre-deploy | Release validation |
+| Weekly | Comprehensive review |
+| Post-change | Regression detection |
+
+## Analyzing Results
+
+### Quality Metrics
+
+```
+**Quality Summary:**
+
+| Metric | Value | Trend |
+|--------|-------|-------|
+| Overall Score | 4.2/5 | ↑ +0.1 |
+| Pass Rate | 91% | ↔ stable |
+| Helpfulness | 4.4/5 | ↑ +0.2 |
+| Accuracy | 4.1/5 | ↔ stable |
+| Empathy | 3.9/5 | ↓ -0.1 |
+```
+
+### Failure Analysis
+
+```
+**Failed Scenarios (9):**
+
+| Scenario | Category | Issue |
+|----------|----------|-------|
+| #45 | Edge Case | Context lost |
+| #78 | Technical | Wrong info |
+| #112 | Adversarial | Partial jailbreak |
+| ... | ... | ... |
+
+**Common Patterns:**
+1. Multi-turn context retention (4 failures)
+2. Technical accuracy (3 failures)
+3. Safety boundaries (2 failures)
+```
+
+### Trend Tracking
+
+Track simulation results over time:
+
+```
+**30-Day Trend:**
+
+Week 1: 88% pass rate
+Week 2: 90% pass rate
+Week 3: 91% pass rate ← Prompt update deployed
+Week 4: 92% pass rate
+
+**Quality improving steadily** ✓
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Run before deployments">
+    Always run simulations before:
+    - Production deployments
+    - Major prompt changes
+    - Model updates
+    - Configuration changes
+  </Accordion>
+  
+  <Accordion title="Maintain scenario diversity">
+    Include scenarios for:
+    - All major use cases
+    - All user personas
+    - Edge cases and errors
+    - Adversarial inputs
+  </Accordion>
+  
+  <Accordion title="Track trends">
+    Monitor simulation results over time:
+    - Establish baselines
+    - Detect regressions
+    - Measure improvements
+  </Accordion>
+  
+  <Accordion title="Act on failures">
+    When simulations fail:
+    - Investigate root cause
+    - Fix identified issues
+    - Add to regression suite
+    - Re-run to verify
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Synthetic Users" icon="users" href="/features/synthetic-users">
+    Generate test users
+  </Card>
+  <Card title="Iris Agent" icon="flask-vial" href="/agents/iris">
+    Work with Iris for testing
+  </Card>
+</CardGroup>

@@ -1,0 +1,283 @@
+---
+title: Context
+description: "Associate traces with users, sessions, and custom metadata"
+icon: "link"
+---
+
+The `context()` function attaches metadata to all spans in the current execution context. This enables you to:
+
+- Group traces by user
+- Track conversation sessions
+- Filter data by version
+- Add custom properties for analysis
+
+## Basic Usage
+
+```python
+from impact.sdk import context
+
+context(
+    user_id="user_123",
+    interaction_id="conversation_456"
+)
+```
+
+All subsequent spans in the current context will include these properties.
+
+## Parameters
+
+```python
+context(
+    user_id: str | None = None,
+    interaction_id: str | None = None,
+    version_id: str | None = None,
+    **extras: Any
+)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `user_id` | `str` | Identifier for the end user |
+| `interaction_id` | `str` | Identifier for the conversation/session |
+| `version_id` | `str` | Override the default version (from API key) |
+| `**extras` | `Any` | Custom key-value properties |
+
+## Core Properties
+
+### user_id
+
+Identifies the end user making the request:
+
+```python
+context(user_id="user_12345")
+```
+
+Use cases:
+- Track usage per user
+- Analyze user-specific patterns
+- Filter traces in the dashboard
+
+### interaction_id
+
+Groups related traces into a conversation or session:
+
+```python
+context(interaction_id="chat_session_789")
+```
+
+Use cases:
+- Track multi-turn conversations
+- Group requests in a workflow
+- Analyze session-level metrics
+
+### version_id
+
+Override the version (normally derived from API key):
+
+```python
+context(version_id="v2.0-beta")
+```
+
+Use cases:
+- A/B testing between versions
+- Gradual rollouts
+- Debug specific versions
+
+## Custom Properties
+
+Add any custom properties using keyword arguments:
+
+```python
+context(
+    user_id="user_123",
+    interaction_id="chat_456",
+    customer_tier="enterprise",
+    feature_flag="new_model",
+    request_source="mobile_app"
+)
+```
+
+Custom properties appear in traces and can be used for filtering and analysis.
+
+## When to Call context()
+
+Call `context()` at the start of each request, before any LLM calls:
+
+```python
+from fastapi import FastAPI, Request
+from impact.sdk import context
+
+app = FastAPI()
+
+@app.post("/chat")
+async def chat(request: Request):
+    body = await request.json()
+    
+    # Set context at the start of the request
+    context(
+        user_id=body.get("user_id"),
+        interaction_id=body.get("session_id")
+    )
+    
+    # Now handle the request...
+    response = await process_chat(body["message"])
+    return {"response": response}
+```
+
+## Context Propagation
+
+Context is automatically propagated to:
+
+- All spans created with `@trace`
+- All auto-instrumented LLM calls
+- Child threads (via ThreadingInstrumentor)
+- Async tasks
+
+```python
+from impact.sdk import context, trace
+
+@trace(name="parent")
+async def parent_function():
+    context(user_id="user_123")
+    
+    # Context propagates to child
+    await child_function()
+
+@trace(name="child")
+async def child_function():
+    # This span also has user_id="user_123"
+    pass
+```
+
+## Multiple Calls
+
+Calling `context()` multiple times merges properties:
+
+```python
+context(user_id="user_123")
+context(interaction_id="chat_456")
+context(custom_prop="value")
+
+# All three properties are now set
+```
+
+Later calls override earlier values for the same key:
+
+```python
+context(user_id="user_123")
+context(user_id="user_456")  # Overrides to user_456
+```
+
+## Framework Integration
+
+### FastAPI
+
+```python
+from fastapi import FastAPI, Request
+from impact.sdk import init, context
+
+init()
+app = FastAPI()
+
+@app.middleware("http")
+async def add_context(request: Request, call_next):
+    # Extract user from auth token
+    user_id = request.state.user_id if hasattr(request.state, "user_id") else None
+    session_id = request.headers.get("X-Session-ID")
+    
+    context(
+        user_id=user_id,
+        interaction_id=session_id
+    )
+    
+    return await call_next(request)
+```
+
+### Flask
+
+```python
+from flask import Flask, g, request
+from impact.sdk import init, context
+
+init()
+app = Flask(__name__)
+
+@app.before_request
+def set_context():
+    context(
+        user_id=getattr(g, "user_id", None),
+        interaction_id=request.headers.get("X-Session-ID")
+    )
+```
+
+### Django
+
+```python
+from impact.sdk import init, context
+
+init()
+
+class ImpactContextMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+    
+    def __call__(self, request):
+        context(
+            user_id=getattr(request, "user_id", None),
+            interaction_id=request.headers.get("X-Session-ID")
+        )
+        return self.get_response(request)
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Always set user_id">
+    User identification is essential for per-user analysis:
+    
+    ```python
+    # Even for anonymous users, use a session ID
+    context(user_id=session.get("anonymous_id") or str(uuid4()))
+    ```
+  </Accordion>
+  
+  <Accordion title="Use consistent interaction_ids">
+    Use the same `interaction_id` for all requests in a conversation:
+    
+    ```python
+    # Good - same ID for the conversation
+    context(interaction_id="conv_123")  # First message
+    context(interaction_id="conv_123")  # Second message
+    context(interaction_id="conv_123")  # Third message
+    
+    # Bad - different IDs lose the grouping
+    context(interaction_id=str(uuid4()))  # Each message gets new ID
+    ```
+  </Accordion>
+  
+  <Accordion title="Add business context">
+    Include properties relevant to your business:
+    
+    ```python
+    context(
+        user_id=user.id,
+        interaction_id=session.id,
+        # Business context
+        customer_plan=user.subscription_tier,
+        feature_enabled=feature_flags.get("new_model"),
+        ab_test_group=experiment.get_group(user.id)
+    )
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Providers" icon="plug" href="/sdk/providers">
+    See all supported AI providers
+  </Card>
+  <Card title="Modules" icon="puzzle-piece" href="/platform/modules">
+    Set up evaluation modules
+  </Card>
+</CardGroup>
