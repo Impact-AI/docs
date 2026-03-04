@@ -1,298 +1,51 @@
 ---
-title: Intelligence
-description: "Real-time analytics, insights, and alerts for your AI product"
+title: Intelligence and Analysis
+description: "How traces become metrics, trends, and issue signals"
 icon: "chart-mixed"
 ---
 
-Intelligence is Impact AI's analytics engine. It processes evaluation results to surface metrics, trends, insights, and alerts about your AI product's performance.
+Impact AI analysis is built from a service pipeline, not a single dashboard query.
 
-## Overview
+## Pipeline Summary
 
-The Intelligence system:
+1. **Ingest**: `impact-telemetry` receives OTLP traces/logs
+2. **Normalize**: `impact-metric` expands batches into normalized spans
+3. **Aggregate**: `impact-metric` builds traces and interaction metrics
+4. **Evaluate**: `impact-eval` and `impact-lens` create runs
+5. **Present**: Analyse/Verify views read projections and run outputs
 
-- **Aggregates** evaluation results into metrics
-- **Analyzes** trends and patterns over time
-- **Generates** AI-powered insights
-- **Triggers** alerts when metrics cross thresholds
+## Runtime Services Involved
 
-## Metrics
+- `impact-telemetry`: `/v1/traces`, `/v1/logs`
+- `impact-metric`: continuous `batch2span` and `spans2trace` processors
+- `impact-eval`: event-driven module scoring
+- `impact-lens`: event-driven interaction/trace tagging
+- `impact-issue`: diagnosis and aggregation endpoints for issue analysis
 
-Metrics are quantitative measurements derived from module evaluations.
+## What You See in the UI
 
-### Metric Types
+### Analyse
 
-| Metric | Description |
-|--------|-------------|
-| **Result** | Primary aggregated score (avg, count, distribution) |
-| **Flag** | Boolean indicator for pass/fail criteria |
-| **Alert** | Triggered when thresholds are crossed |
-| **Confidence** | Aggregated evaluation confidence |
-| **Interactions** | Count of evaluated interactions |
+- **Monitor**: health and trend surfaces
+- **Datasets**: interaction/trace exploration
+- **Catalog**: module-level view
+- **Issues**: grouped and interaction-level diagnostics
 
-### Result Metric
+### Verify
 
-The Result metric varies by module type:
+- Quality/capabilities/outcomes views sourced from run outputs and module metrics
 
-**Impact Eval:**
-```json
-{
-  "value": 4.2,
-  "change": 0.3,
-  "aggregates": {
-    "avg": 4.2,
-    "min": 2,
-    "max": 5,
-    "count": 1250
-  },
-  "histogram": {
-    "1": 12,
-    "2": 45,
-    "3": 180,
-    "4": 520,
-    "5": 493
-  },
-  "timeseries": {
-    "3600": [...],
-    "86400": [...]
-  }
-}
-```
+## Metrics and Runs
 
-**Impact Lens:**
-```json
-{
-  "tags": [
-    {"name": "product_inquiry", "value": 450, "change": 12.5},
-    {"name": "support_request", "value": 380, "change": -5.2},
-    {"name": "feedback", "value": 120, "change": 8.1}
-  ]
-}
-```
+- Canonical trace/interaction metrics are written by `impact-metric`
+- Evaluation results are written as runs (`version_id`, `module_id`, `interaction_id`)
+- Frontend components combine both metrics and run data for charts and summaries
 
-### Aggregations
+## Operational Note
 
-Metrics support multiple aggregation methods:
+Because evaluation is asynchronous and event-driven, ingestion is near real-time but not strictly synchronous with the originating request.
 
-| Aggregation | Description |
-|-------------|-------------|
-| `avg` | Average value |
-| `sum` | Total sum |
-| `count` | Number of items |
-| `min` / `max` | Minimum/maximum values |
-| `p50` / `p95` / `p99` | Percentiles |
+## Next
 
-### Time Windows
-
-View metrics across different time windows:
-
-- **1 hour** — Real-time monitoring
-- **24 hours** — Daily patterns
-- **7 days** — Weekly trends
-- **30 days** — Monthly overview
-- **All time** — Complete history
-
-## Insights
-
-Insights are AI-generated observations about your product's performance.
-
-### Insight Types
-
-| Type | Description |
-|------|-------------|
-| **Trend** | Improving, degrading, or stable patterns |
-| **Anomaly** | Unusual patterns or outliers |
-| **Opportunity** | Areas for improvement |
-| **Correlation** | Related metrics or behaviors |
-
-### Example Insights
-
-```json
-{
-  "insights": [
-    {
-      "type": "trend",
-      "value": "Response helpfulness improved 15% this week",
-      "rationale": "Score increased from 3.8 to 4.4 average"
-    },
-    {
-      "type": "anomaly",
-      "value": "Unusual spike in hallucination flags",
-      "rationale": "50% increase on Tuesday correlates with model update"
-    },
-    {
-      "type": "opportunity",
-      "value": "Technical queries underperforming",
-      "rationale": "Technical topic scores 25% lower than general queries"
-    }
-  ]
-}
-```
-
-### Summaries
-
-Each module can have an AI-generated summary:
-
-> "Response helpfulness has been consistently high this week, averaging 4.2/5. The main areas for improvement are technical queries, which score lower due to incomplete information. Consider enhancing the knowledge base for technical topics."
-
-## Alerts
-
-Alerts notify you when metrics cross defined thresholds.
-
-### Configuring Alerts
-
-Set alerts on any module:
-
-```json
-{
-  "alertable": true,
-  "alert_config": {
-    "threshold": 3.5,
-    "direction": "below",
-    "window": "24h",
-    "sensitivity": "medium"
-  }
-}
-```
-
-### Alert States
-
-| State | Description |
-|-------|-------------|
-| **Active** | Currently triggered |
-| **Resolved** | Previously triggered, now normal |
-| **Muted** | Temporarily silenced |
-
-### Viewing Alerts
-
-Access alerts from:
-- **Dashboard** — Alert indicators on metrics
-- **Alerts Panel** — Dedicated alert management
-- **Notifications** — Email/webhook notifications
-
-## Scopes
-
-Intelligence operates at different scopes:
-
-### Module Scope
-
-Detailed metrics for a single evaluation module:
-- Full metric breakdown
-- Summary and insights
-- Historical trends
-
-### Widget Scope
-
-Aggregated metrics across modules in a widget:
-- Combined scores
-- Cross-module patterns
-
-### Page Scope
-
-High-level metrics for a page category:
-- Summary metrics
-- Page-level trends
-
-### Product Scope
-
-Overall product health:
-- Interaction counts
-- Global trends
-- Key performance indicators
-
-## Filters
-
-Filter intelligence data by:
-
-| Filter | Description |
-|--------|-------------|
-| **Timeframe** | Time window for aggregation |
-| **Modules** | Specific modules to include |
-| **Result Predicates** | Filter by result values |
-
-### Example Filter
-
-```json
-{
-  "timeframe": 2592000,
-  "modules": [
-    {
-      "module_id": "helpfulness",
-      "result_predicates": [{"op": "gte", "value": 3}]
-    }
-  ]
-}
-```
-
-## Real-Time Updates
-
-Intelligence updates in real-time as new traces flow in:
-
-1. Traces arrive via SDK
-2. Modules evaluate the interaction
-3. Results update cached metrics
-4. Dashboard reflects changes
-5. Alerts trigger if thresholds crossed
-
-Updates propagate within seconds of receiving traces.
-
-## Dashboard Views
-
-### Key Metrics
-
-View the most important metrics at a glance:
-- Starred modules
-- Alertable modules
-- Sorted by importance
-
-### Trend Charts
-
-Visualize metrics over time:
-- Line charts for scores
-- Bar charts for distributions
-- Comparison views
-
-### Module Details
-
-Deep dive into any module:
-- Full metric breakdown
-- Histogram distributions
-- Time series analysis
-- AI-generated insights
-
-## Best Practices
-
-<AccordionGroup>
-  <Accordion title="Configure alerts thoughtfully">
-    Set alerts for:
-    - Critical quality thresholds
-    - Safety/compliance metrics
-    - Business-critical evaluations
-    
-    Avoid alert fatigue by focusing on actionable alerts.
-  </Accordion>
-  
-  <Accordion title="Review insights regularly">
-    Check AI-generated insights weekly to:
-    - Identify improvement opportunities
-    - Catch emerging issues
-    - Validate model changes
-  </Accordion>
-  
-  <Accordion title="Use appropriate time windows">
-    - **Hourly**: Real-time monitoring, incident response
-    - **Daily**: Regular check-ins, trend spotting
-    - **Weekly**: Performance reviews, planning
-    - **Monthly**: Strategic analysis, reporting
-  </Accordion>
-</AccordionGroup>
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Impact Studio" icon="wand-magic-sparkles" href="/platform/impact-studio">
-    Create modules to generate intelligence
-  </Card>
-  <Card title="Orion Agent" icon="chart-pie" href="/agents/orion">
-    Get AI-powered analysis with Orion
-  </Card>
-</CardGroup>
+- [Modules](/platform/modules)
+- [Tools Overview](/tools/overview)

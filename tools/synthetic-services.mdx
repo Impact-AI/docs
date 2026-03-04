@@ -1,0 +1,45 @@
+---
+title: Synthetic Services
+description: "Persona, artificial-user, and interaction-generation services"
+icon: "users"
+---
+
+Impact AI includes dedicated services for synthetic testing workflows.
+
+## Service Roles
+
+| Service | Purpose |
+|---|---|
+| `impact-persona` | Generate personas from product/profile context |
+| `impact-synt` | Generate artificial users from persona inputs |
+| `impact-simulate` | Generate simulated interactions for those users |
+
+## Common API Pattern
+
+These services share an async task pattern:
+
+- `POST /generate` (or service-specific generation route)
+- `GET /status/{task_id}`
+- `GET /results/{task_id}`
+- `GET /health`
+
+Requests use authenticated `ModulesRequest`-style payloads and return task IDs for polling.
+
+## Typical Workflow
+
+1. Generate personas (`impact-persona`)
+2. Generate artificial users (`impact-synt`)
+3. Generate interactions (`impact-simulate`)
+4. Feed resulting interactions into eval/lens modules
+5. Analyze outcomes in Verify/Analyse
+
+## Why This Stack Exists
+
+- Create repeatable test cohorts
+- Stress specific user behaviors and edge cases
+- Build pre-release quality confidence without waiting for live traffic
+
+## Related
+
+- [Impact Eval Service](/tools/impact-eval)
+- [Impact Studio](/platform/impact-studio)

@@ -1,15 +1,15 @@
 ---
 title: Installation
-description: "Install and configure the Impact AI SDK"
+description: "Install the Python SDK and configure credentials"
 icon: "download"
 ---
 
 ## Requirements
 
-- Python 3.10 or higher
-- pip, uv, or poetry
+- Python 3.10+
+- Network access from your runtime to your Impact OTLP endpoint
 
-## Install the SDK
+## Install
 
 <CodeGroup>
 
@@ -27,122 +27,74 @@ poetry add impact
 
 </CodeGroup>
 
-## What's Included
+## Required Environment Variables
 
-The SDK includes instrumentation for all major GenAI providers out of the box:
-
-```
-impact
-├── opentelemetry-api
-├── opentelemetry-sdk
-├── opentelemetry-exporter-otlp-proto-http
-├── opentelemetry-instrumentation-openai-v2
-├── opentelemetry-instrumentation-anthropic
-├── opentelemetry-instrumentation-google-genai
-├── opentelemetry-instrumentation-vertexai
-├── opentelemetry-instrumentation-botocore
-├── opentelemetry-instrumentation-ollama
-├── opentelemetry-instrumentation-mistralai
-├── opentelemetry-instrumentation-cohere
-├── opentelemetry-instrumentation-groq
-├── opentelemetry-instrumentation-llamaindex
-└── ... and more
+```bash
+export IMPACT_API_KEY="impact_<region>_<token>"
 ```
 
 <Note>
-  You don't need to install individual instrumentation packages. The Impact SDK includes everything.
+  For Impact Cloud, endpoint resolution is automatic from `IMPACT_API_KEY`.
+  Use an explicit endpoint override only for self-hosted/custom deployments.
 </Note>
 
-## Environment Variables
-
-Configure the SDK using environment variables:
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `IMPACT_API_KEY` | Yes | Your Impact AI API key |
-| `IMPACT_BASE_URL` | Yes | Your Impact AI endpoint URL |
+## Optional: Self-Hosted Endpoint Override
 
 ```bash
-export IMPACT_API_KEY="your-api-key"
-export IMPACT_BASE_URL="https://your-tenant.impact.ai"
+export IMPACT_BASE_URL="https://api.<your-domain>"
 ```
 
-## Basic Setup
-
-Add this to your application's entry point:
+## First Initialization
 
 ```python
-from impact.sdk import init
+import impact
 
-# Initialize after importing your AI provider SDKs
-init()
+impact.init()
 ```
 
-The SDK will automatically read `IMPACT_API_KEY` and `IMPACT_BASE_URL` from environment variables.
-
-## Explicit Configuration
-
-You can also pass configuration explicitly:
+Or explicit values (for self-hosted/custom endpoint):
 
 ```python
-from impact.sdk import init
+import impact
 
-init(
-    api_key="your-api-key",
-    api_endpoint="https://your-tenant.impact.ai"
+impact.init(
+    api_key="impact_<region>_<token>",
+    api_endpoint="https://api.<your-domain>",
 )
 ```
 
-## Verify Installation
-
-Test that the SDK is working:
+## Verify It Works
 
 ```python
-from impact.sdk import init
+import impact
 from openai import OpenAI
 
-# Initialize
-init(
-    api_key="your-api-key",
-    api_endpoint="https://your-tenant.impact.ai"
-)
+impact.init()
 
-# Make a test call
 client = OpenAI()
-response = client.chat.completions.create(
+client.chat.completions.create(
     model="gpt-4o-mini",
-    messages=[{"role": "user", "content": "Say hello"}]
+    messages=[{"role": "user", "content": "health check"}],
 )
-
-print(response.choices[0].message.content)
 ```
 
-Check your Impact AI dashboard — you should see the trace appear within seconds.
+You should see traces in Analyse within seconds.
 
-## Import Order
+## Troubleshooting
 
-<Warning>
-  The `init()` call must come **after** importing your AI provider SDKs for auto-instrumentation to work.
-</Warning>
+<AccordionGroup>
+  <Accordion title="Missing api_key error">
+    Set `IMPACT_API_KEY` or pass `api_key=` explicitly to `impact.init()`.
+  </Accordion>
+  <Accordion title="Could not resolve endpoint from API key">
+    Use an `impact_<region>_*` key format, or set `IMPACT_BASE_URL` for self-hosted/custom routing.
+  </Accordion>
+  <Accordion title="No traces arriving">
+    Verify outbound access to `<endpoint>/v1/traces` and check auth key scope/version.
+  </Accordion>
+</AccordionGroup>
 
-```python
-# Correct order
-from openai import OpenAI          # 1. Import AI providers first
-from anthropic import Anthropic
-from impact.sdk import init        # 2. Import Impact SDK
-init()                             # 3. Initialize
+## Next
 
-# Now use your AI providers
-client = OpenAI()
-```
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Initialization Options" icon="sliders" href="/sdk/initialization">
-    Configure advanced initialization options
-  </Card>
-  <Card title="Custom Tracing" icon="route" href="/sdk/tracing">
-    Add custom spans to your traces
-  </Card>
-</CardGroup>
+- [Initialization](/sdk/initialization)
+- [Supported Providers](/sdk/providers)

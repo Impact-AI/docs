@@ -1,121 +1,86 @@
 ---
-title: SDK Overview
-description: "The Impact AI Python SDK for GenAI observability"
+title: Python SDK Overview
+description: "Impact Python SDK (`impact`) for OTLP-native tracing and evaluation observability"
 icon: "code"
 ---
 
-The Impact AI SDK provides automatic tracing and telemetry for your AI applications. Built on OpenTelemetry, it captures every LLM call, tool invocation, and retrieval with zero code changes.
+The Python SDK is the primary integration path for Impact AI.
 
-## Key Features
+Package name: `impact`
 
-<CardGroup cols={2}>
-  <Card title="Auto-Instrumentation" icon="wand-magic-sparkles">
-    Automatically captures traces from OpenAI, Anthropic, Azure, Google, and more
-  </Card>
-  <Card title="Custom Tracing" icon="route">
-    Add custom spans with the `@trace` decorator for full visibility
-  </Card>
-  <Card title="Context Propagation" icon="link">
-    Associate traces with users, sessions, and custom metadata
-  </Card>
-  <Card title="BYO OpenTelemetry" icon="plug">
-    Works alongside existing OTel setups (Datadog, Langfuse, etc.)
-  </Card>
-</CardGroup>
+## What It Does
 
-## Supported Providers
+- Sends traces and logs to Impact over OTLP HTTP
+- Auto-instruments supported AI providers/frameworks
+- Attaches `impact.context.*` attributes across execution context
+- Provides a single manual span decorator: `@trace`
+- Works in BYO OpenTelemetry setups (`auto`, `attach`, `bootstrap`)
 
-The SDK automatically instruments these GenAI providers:
-
-| Provider | Package | Auto-Instrumented |
-|----------|---------|-------------------|
-| OpenAI | `openai` | Yes |
-| Azure OpenAI | `openai` / `azure-ai-inference` | Yes |
-| Anthropic | `anthropic` | Yes |
-| Google GenAI | `google-generativeai` | Yes |
-| Google Vertex AI | `vertexai` | Yes |
-| AWS Bedrock | `boto3` | Yes |
-| Ollama | `ollama` | Yes |
-| Mistral | `mistralai` | Yes |
-| Cohere | `cohere` | Yes |
-| Groq | `groq` | Yes |
-| LlamaIndex | `llama-index` | Yes |
-| OpenAI Agents SDK | `openai-agents` | Yes |
-
-## How It Works
-
-The SDK uses OpenTelemetry instrumentation to automatically capture telemetry:
-
-```mermaid
-graph LR
-    A[Your Code] --> B[AI Provider SDK]
-    B --> C[OTel Instrumentation]
-    C --> D[Impact AI]
-    C --> E[Your OTel Backend]
-```
-
-1. You call your AI provider as normal
-2. The instrumentation intercepts the call
-3. Span data is captured (input, output, tokens, latency)
-4. Traces are exported to Impact AI (and optionally your own OTel backend)
-
-## Quick Example
+## Minimal Integration
 
 ```python
-import os
+import impact
 from openai import OpenAI
-from impact.sdk import init, context
 
-# Initialize Impact AI
-init(
-    api_key=os.getenv("IMPACT_API_KEY"),
-    api_endpoint=os.getenv("IMPACT_URL")
-)
+impact.init()
+impact.context(user_id="u_123", interaction_id="int_456")
 
-# Set context for the request
-context(user_id="user_123", interaction_id="chat_001")
-
-# Use OpenAI as normal - it's automatically traced
 client = OpenAI()
-response = client.chat.completions.create(
-    model="gpt-4o",
-    messages=[{"role": "user", "content": "Hello!"}]
+client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "Hello"}],
 )
 ```
 
-## What's Captured
+## Public API
 
-For each LLM call, the SDK captures:
+```python
+import impact
 
-- **Request**: Model, messages, parameters
-- **Response**: Generated content, finish reason
-- **Tokens**: Input, output, and reasoning tokens
-- **Timing**: Start time, duration, time-to-first-token
-- **Cost**: Calculated based on model pricing
-- **Errors**: Exception details and stack traces
+impact.init(...)
+impact.context(...)
+impact.trace(...)
+impact.instrument_asgi_app(app)
+impact.shutdown()
+```
 
-## Architecture
+## Runtime Modes
 
-The SDK is designed to be lightweight and non-intrusive:
+| Mode | Behavior |
+|---|---|
+| `auto` (default) | Attach to existing tracer provider when available, otherwise bootstrap |
+| `attach` | Require existing provider and add Impact processors/exporters |
+| `bootstrap` | Create and register a new provider |
 
-- **Zero dependencies on AI providers** — Works with whatever SDK you use
-- **Minimal overhead** — Async export with batching
-- **Graceful degradation** — Won't crash your app if Impact AI is unreachable
-- **Thread-safe** — Works with async, threading, and multiprocessing
+## Endpoint Resolution
 
-## Next Steps
+By default, `impact.init()` derives endpoint routing from `IMPACT_API_KEY` (`impact_<region>_*` format).
+
+For self-hosted/custom deployments, override endpoint with:
+
+- `api_endpoint` in `impact.init(...)`, or
+- `IMPACT_BASE_URL` environment variable.
+
+## Key Python-Specific Points
+
+- `IMPACT_API_KEY` is required (argument or env var)
+- SDK sets GenAI semantic-convention defaults for compatible instrumentations
+- Context is stored via `contextvars`, so it works with async/threaded flows
+- `shutdown()` flushes and stops Impact-owned processors/exporters
+
+## Recommended Next Pages
 
 <CardGroup cols={2}>
   <Card title="Installation" icon="download" href="/sdk/installation">
-    Install and configure the SDK
+    Install package and configure environment variables.
   </Card>
-  <Card title="Initialization" icon="play" href="/sdk/initialization">
-    Configure initialization options
-  </Card>
-  <Card title="Custom Tracing" icon="route" href="/sdk/tracing">
-    Add custom spans with decorators
+  <Card title="Initialization" icon="sliders" href="/sdk/initialization">
+    Full `init()` parameters and BYO OpenTelemetry setup.
   </Card>
   <Card title="Context" icon="link" href="/sdk/context">
-    Associate traces with users and sessions
+    Attach user/session metadata to traces.
+  </Card>
+  <Card title="Supported Providers" icon="plug" href="/sdk/providers">
+    Current instrumentation coverage.
   </Card>
 </CardGroup>

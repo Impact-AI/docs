@@ -1,25 +1,15 @@
 ---
 title: Initialization
-description: "Configure SDK initialization options"
+description: "Configure runtime mode, exporters, and OpenTelemetry behavior"
 icon: "sliders"
 ---
 
-The `init()` function configures the Impact AI SDK and starts telemetry collection.
+Use `impact.init()` once at process startup.
 
-## Basic Usage
-
-```python
-from impact.sdk import init
-
-init()
-```
-
-This reads configuration from environment variables `IMPACT_API_KEY` and `IMPACT_BASE_URL`.
-
-## Parameters
+## Signature
 
 ```python
-init(
+impact.init(
     api_key: str | None = None,
     api_endpoint: str | None = None,
     mode: Literal["auto", "bootstrap", "attach"] = "auto",
@@ -28,173 +18,82 @@ init(
 )
 ```
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `api_key` | `str` | `None` | API key for authentication. Falls back to `IMPACT_API_KEY` env var. |
-| `api_endpoint` | `str` | `None` | Impact AI endpoint URL. Falls back to `IMPACT_BASE_URL` env var. |
-| `mode` | `str` | `"auto"` | Initialization mode (see below) |
-| `disable_batch` | `bool` | `False` | Disable batching for immediate export |
-| `disable_logs` | `bool` | `False` | Disable log capture (GenAI message content) |
+## Parameters
 
-## Initialization Modes
+| Parameter | Description |
+|---|---|
+| `api_key` | API key override (fallback: `IMPACT_API_KEY`) |
+| `api_endpoint` | Endpoint override (typically only needed for self-hosted/custom endpoint routing) |
+| `mode` | OpenTelemetry integration mode |
+| `disable_batch` | Use simple processors instead of batch processors |
+| `disable_logs` | Disable OTLP log pipeline |
 
-The `mode` parameter controls how the SDK interacts with existing OpenTelemetry setups:
+## Mode Behavior
 
-### Auto Mode (Default)
+### `mode="auto"` (default)
 
-```python
-init(mode="auto")
-```
+- If a real tracer provider exists: attach Impact span processor/exporter
+- Otherwise: bootstrap a provider
 
-- Checks if a TracerProvider already exists
-- If yes: attaches to it (your existing OTel setup continues working)
-- If no: bootstraps its own TracerProvider
+Best default for most apps.
 
-This is the safest option and works with existing observability setups.
+### `mode="attach"`
 
-### Bootstrap Mode
+- Requires an existing provider
+- Does not replace the existing provider
+- Raises `ValueError` if no provider exists
 
-```python
-init(mode="bootstrap")
-```
+Use when you already own OTel setup and only want to add Impact export.
 
-- Always creates and sets a new TracerProvider
-- Replaces any existing TracerProvider
-- Use when you want Impact AI to be the primary tracing backend
+### `mode="bootstrap"`
 
-### Attach Mode
+- Always creates and sets a provider
+- Impact becomes the primary provider for the process
+
+## BYO OpenTelemetry Example
 
 ```python
-init(mode="attach")
-```
-
-- Requires an existing TracerProvider
-- Adds Impact AI as an additional exporter
-- Raises `ValueError` if no TracerProvider exists
-
-Use this when you have an existing OTel setup (Datadog, Honeycomb, etc.) and want to also send to Impact AI.
-
-## BYO OpenTelemetry
-
-Impact AI works alongside your existing observability stack:
-
-```python
-# Your existing OTel setup
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
-# Set up your existing provider
-provider = TracerProvider()
-provider.add_span_processor(
-    BatchSpanProcessor(OTLPSpanExporter(endpoint="your-otel-backend"))
-)
-trace.set_tracer_provider(provider)
+import impact
 
-# Now initialize Impact AI - it will attach to your existing provider
-from impact.sdk import init
-init(mode="auto")  # or mode="attach"
-```
+trace.set_tracer_provider(TracerProvider())
 
-Traces will flow to both your existing backend and Impact AI.
-
-## Batching Configuration
-
-By default, the SDK batches spans for efficient export. Disable batching for debugging:
-
-```python
-init(disable_batch=True)
-```
-
-<Warning>
-  Disabling batching increases network overhead. Only use for debugging.
-</Warning>
-
-## Log Capture
-
-The SDK captures GenAI message content as logs by default. Disable if you don't want message content sent:
-
-```python
-init(disable_logs=True)
-```
-
-<Note>
-  Disabling logs means you won't see input/output message content in traces, only metadata.
-</Note>
-
-## Shutdown
-
-Gracefully shutdown the SDK to flush pending telemetry:
-
-```python
-from impact.sdk import shutdown
-
-# At application exit
-shutdown()
-```
-
-The shutdown function:
-- Flushes all pending spans and logs
-- Closes exporters cleanly
-- Does NOT shut down user-provided TracerProviders (only Impact AI's components)
-
-## Environment Variables
-
-These environment variables affect SDK behavior:
-
-| Variable | Description |
-|----------|-------------|
-| `IMPACT_API_KEY` | API key for authentication |
-| `IMPACT_BASE_URL` | Impact AI endpoint URL |
-| `OTEL_SEMCONV_STABILITY_OPT_IN` | Set automatically to `gen_ai_latest_experimental` |
-| `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT` | Set automatically to `true` |
-
-## Complete Example
-
-```python
-import os
-import atexit
-from impact.sdk import init, shutdown
-
-# Initialize with explicit configuration
-init(
-    api_key=os.getenv("IMPACT_API_KEY"),
-    api_endpoint=os.getenv("IMPACT_BASE_URL"),
-    mode="auto",
-    disable_batch=False,
-    disable_logs=False,
-)
-
-# Register shutdown handler
-atexit.register(shutdown)
-
-# Your application code...
+impact.init(mode="attach")
 ```
 
 ## ASGI Middleware
 
-For web applications, wrap your ASGI app with OpenTelemetry middleware:
-
 ```python
-from impact.sdk import init, instrument_asgi_app
 from fastapi import FastAPI
+import impact
 
-init()
+impact.init()
 
 app = FastAPI()
-app = instrument_asgi_app(app)
+app = impact.instrument_asgi_app(app)
 ```
 
-This creates root spans for HTTP requests, giving you end-to-end traces from HTTP request to LLM call.
+## Shutdown
 
-## Next Steps
+```python
+import atexit
+import impact
 
-<CardGroup cols={2}>
-  <Card title="Custom Tracing" icon="route" href="/sdk/tracing">
-    Add custom spans with decorators
-  </Card>
-  <Card title="Context" icon="link" href="/sdk/context">
-    Associate traces with users and sessions
-  </Card>
-</CardGroup>
+impact.init()
+atexit.register(impact.shutdown)
+```
+
+`shutdown()` flushes pending telemetry and shuts down Impact-owned processors/exporters.
+
+## Notes
+
+- SDK sets default GenAI semantic-convention env values if not already set.
+- Calling `init()` multiple times is idempotent after the first successful init.
+- For self-hosted deployments, you can set endpoint via `api_endpoint` or `IMPACT_BASE_URL`.
+
+## Next
+
+- [Context](/sdk/context)
+- [Custom Tracing](/sdk/tracing)

@@ -1,265 +1,62 @@
 ---
 title: Impact Studio
-description: "Build and configure evaluation modules with AI assistance"
+description: "Build modules and use tool-assisted workflows"
 icon: "wand-magic-sparkles"
 ---
 
-Impact Studio is Impact AI's module builder. It provides a visual interface for creating, configuring, and testing evaluation modules with AI assistance.
+Impact Studio is the module authoring surface used by the frontend and backend tool APIs.
 
-## Overview
+## What Studio Handles
 
-Impact Studio helps you:
+- Create/edit module definitions and components
+- Run tool-assisted drafting workflows
+- Persist module changes to the data layer
 
-- **Create** evaluation modules with guided configuration
-- **Configure** rubrics, thresholds, and settings
-- **Test** modules against sample data
-- **Deploy** modules to production
+## Current Tool Endpoints
 
-## Getting Started
+Studio exposes the following backend routes:
 
-1. Navigate to **Impact Studio** in the sidebar
-2. Click **Create Module** or select an existing module
-3. Configure with assistance from [Sage](/agents/sage)
+- `POST /api/v1/tools/deep_research`
+- `POST /api/v1/tools/scoring_preview`
+- `POST /api/v1/module_management/store_module`
 
-## Module Types
+## Tool Capabilities
 
-### Impact Eval
+### Deep Research
 
-Create LLM-as-a-judge evaluations:
+- Input: current module UI content
+- Behavior: generates a research report with web-search assistance
+- Output: structured report payload
 
-1. **Choose Evaluation Mode**
-   - 1-5 Scale
-   - Pass/Fail
-   - Custom Rubric
+### Scoring Preview
 
-2. **Define Rubric**
-   - Score definitions
-   - Evaluation criteria
-   - Examples (optional)
+- Input: module UI content + sample conversation prompt
+- Behavior: simulates scoring-level outputs
+- Output: `high`, `baseline`, `medium`, `low` response variants
 
-3. **Configure Settings**
-   - Importance level
-   - Alert thresholds
-   - Display options
+### Store Module
 
-### Impact Lens
+- Input: module UI content
+- Behavior: create/update module and synchronize components
+- Output: stored module entity
 
-Create classification modules:
+## How It Fits in the Workflow
 
-1. **Define Tags**
-   - Tag names and descriptions
-   - Hierarchies (optional)
-   - Multi-label settings
+1. Draft module in Studio
+2. Use deep research and scoring preview to refine rubric/design
+3. Save module
+4. Activate module for eval/lens processing
+5. Observe results in Analyse/Verify
 
-2. **Configure Detection**
-   - Detection criteria
-   - Confidence thresholds
-   - Exclusivity rules
+## Service Dependencies
 
-## Configuration Interface
+Studio tools currently rely on:
 
-### Basic Settings
+- semantic-kernel-based orchestration in `impact-studio`
+- configured model services (regular/reasoning)
+- optional Google web-search plugin credentials
 
-| Field | Description |
-|-------|-------------|
-| **Name** | Module display name |
-| **Description** | What this module evaluates |
-| **Type** | Impact Eval or Impact Lens |
-| **Status** | Active, Disabled, Draft |
+## Next
 
-### Evaluation Settings
-
-| Field | Description |
-|-------|-------------|
-| **Mode** | Scoring method |
-| **Rubric** | Score definitions |
-| **Instructions** | Additional guidance for evaluation |
-| **Examples** | Sample inputs and expected outputs |
-
-### Metrics Settings
-
-| Field | Description |
-|-------|-------------|
-| **Importance** | High, Medium, Low |
-| **Starred** | Show in key metrics |
-| **Alertable** | Enable alerts |
-| **Threshold** | Alert trigger value |
-
-## Building with Sage
-
-[Sage](/agents/sage) provides AI assistance throughout the module building process:
-
-### Chat Interface
-
-Chat with Sage to:
-- Describe what you want to evaluate
-- Get rubric suggestions
-- Refine configurations
-- Troubleshoot issues
-
-```
-You: I want to evaluate if responses are too verbose
-
-Sage: I'll help you create a "Response Conciseness" module. 
-Here's a suggested rubric:
-
-5 - Concise and complete, no unnecessary content
-4 - Mostly concise with minor verbosity
-3 - Some unnecessary content but still readable
-2 - Notably verbose, key points buried
-1 - Excessively long, difficult to extract value
-
-Should I adjust any of these definitions?
-```
-
-### Auto-Generation
-
-Sage can auto-generate modules based on:
-- Your product description
-- Sample interactions
-- Existing evaluation criteria
-
-## Testing Modules
-
-Before deploying, test modules against sample data:
-
-### Preview Tab
-
-1. Select sample interactions
-2. Run evaluation
-3. Review results
-4. Adjust configuration as needed
-
-### Test Results
-
-View test results including:
-- Score/classification
-- Confidence level
-- Reasoning
-- Component breakdown
-
-## Deployment
-
-### Save as Draft
-
-Save your configuration without activating:
-- Continue editing later
-- Share for review
-- Test further
-
-### Deploy to Production
-
-Activate the module:
-1. Review configuration
-2. Click **Deploy**
-3. Module starts evaluating new interactions
-
-### Version History
-
-Track changes to your modules:
-- Configuration history
-- Deployment timestamps
-- Rollback options
-
-## Module Templates
-
-Start from templates for common evaluations:
-
-| Template | Description |
-|----------|-------------|
-| **Helpfulness** | Response addresses user's question |
-| **Accuracy** | Information is factually correct |
-| **Safety** | Response is safe and appropriate |
-| **Completeness** | All aspects of query addressed |
-| **Clarity** | Response is clear and understandable |
-| **Topic Detection** | Classify conversation topics |
-| **Intent Recognition** | Identify user intent |
-| **Sentiment Analysis** | Detect user sentiment |
-
-## Advanced Configuration
-
-### Custom Prompts
-
-For advanced users, customize the evaluation prompt:
-
-```markdown
-## Evaluation Task
-
-Evaluate the AI response for {criterion}.
-
-## Context
-- User Query: {input}
-- AI Response: {output}
-- Retrieved Context: {context}
-
-## Rubric
-{rubric}
-
-## Instructions
-{instructions}
-```
-
-### Component Analysis
-
-Enable detailed breakdown:
-- Individual criteria scores
-- Reasoning per component
-- Aggregated result
-
-### Filter Conditions
-
-Apply modules conditionally:
-- Only specific topics
-- Certain user segments
-- Particular interaction types
-
-## Best Practices
-
-<AccordionGroup>
-  <Accordion title="Start simple, iterate">
-    Begin with basic rubrics and refine based on results:
-    
-    1. Create initial module
-    2. Run on sample data
-    3. Review disagreements
-    4. Adjust rubric
-    5. Repeat
-  </Accordion>
-  
-  <Accordion title="Use clear, specific rubrics">
-    Good rubrics:
-    - Define each score level clearly
-    - Use objective criteria
-    - Include examples when helpful
-    
-    ```
-    ✓ "Response directly answers the question with accurate information"
-    ✗ "Good response"
-    ```
-  </Accordion>
-  
-  <Accordion title="Test before deploying">
-    Always test modules:
-    - Against diverse examples
-    - Edge cases
-    - Known good/bad responses
-  </Accordion>
-  
-  <Accordion title="Monitor after deployment">
-    After deploying:
-    - Check initial results
-    - Verify alignment with expectations
-    - Adjust thresholds as needed
-  </Accordion>
-</AccordionGroup>
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Sage Agent" icon="bullseye" href="/agents/sage">
-    Get AI assistance building modules
-  </Card>
-  <Card title="Intelligence" icon="chart-mixed" href="/platform/intelligence">
-    View metrics from your modules
-  </Card>
-</CardGroup>
+- [Impact Eval Service](/tools/impact-eval)
+- [Synthetic Services](/tools/synthetic-services)

@@ -1,165 +1,55 @@
 ---
 title: Self-Hosted Overview
-description: "Deploy Impact AI in your own cloud infrastructure"
+description: "Deploy Impact AI in your own Azure environment using the current infrastructure workflow"
 icon: "server"
 ---
 
-Impact AI can be deployed in your own Azure environment for organizations requiring data residency, compliance, or network isolation.
+Impact AI self-hosting is Azure-first and follows a two-layer model:
 
-## Deployment Options
+1. **Core (shared, one-time)**
+2. **Environment (repeatable per deployment: dev/prod/customer)**
 
-<CardGroup cols={2}>
-  <Card title="Impact AI Cloud" icon="cloud">
-    Fully managed SaaS deployment. No infrastructure to manage.
-  </Card>
-  <Card title="Self-Hosted" icon="server">
-    Deploy in your Azure subscription with full control.
-  </Card>
-</CardGroup>
+## Deployment Layers
 
-## Why Self-Host?
+```text
+Core (once)
+  - Front Door, ACR, DNS, App Config, Key Vault, Entra External ID, shared comms
 
-Self-hosting is ideal when you need:
-
-| Requirement | Self-Hosted Benefit |
-|-------------|---------------------|
-| **Data Residency** | Data stays in your subscription |
-| **Network Isolation** | VNet integration, private endpoints |
-| **Compliance** | Meet specific regulatory requirements |
-| **Customization** | Configure infrastructure to your needs |
-| **Control** | Full ownership of resources |
-
-## Architecture Overview
-
-Self-hosted Impact AI runs on Azure with these core components:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Your Azure Subscription               │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
-│  │  Frontend   │  │  Services   │  │    AI       │    │
-│  │  (Next.js)  │  │  (FastAPI)  │  │  Foundry    │    │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘    │
-│         │                │                │            │
-│         └────────┬───────┴────────┬───────┘            │
-│                  │                │                     │
-│         ┌───────┴────────┐ ┌─────┴──────┐             │
-│         │   PostgreSQL   │ │   Redis    │             │
-│         └────────────────┘ └────────────┘             │
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐  │
-│  │              Virtual Network                     │  │
-│  │         (Private Endpoints)                      │  │
-│  └─────────────────────────────────────────────────┘  │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
+Environment (per instance)
+  - VNet/private endpoints, Container Apps, Postgres/Redis/Storage, AI services
 ```
 
-## Core Components
+## Source of Truth Repos
 
-### Compute
+- `infrastructure` repo: provisioning code (`core/`, `platform/`, `channels/`)
+- `evaluation` repo: backend services
+- `impact` repo: frontend applications
 
-| Component | Service | Purpose |
-|-----------|---------|---------|
-| Frontend | Container Apps | Next.js web application |
-| Backend Services | Container Apps | Python microservices |
-| Background Jobs | Container Apps | Data processing |
+## What Core Provisioning Creates
 
-### Data
+From the current `core` templates/scripts, core setup provisions shared resources such as:
 
-| Component | Service | Purpose |
-|-----------|---------|---------|
-| Primary Database | PostgreSQL Flexible Server | Structured data storage |
-| Cache | Redis Cache | Session and intelligence cache |
-| Object Storage | Blob Storage | Documents and artifacts |
+- Azure Front Door Premium + WAF policy
+- Azure Container Registry
+- Azure DNS zone
+- App Configuration + Key Vault
+- Azure Communication Services (email domain + sender)
+- Entra External ID tenant and app registrations
+- Core service principal for GitHub OIDC workflows
 
-### AI
+## Why This Model
 
-| Component | Service | Purpose |
-|-----------|---------|---------|
-| LLM Access | Azure AI Foundry | GPT-4o, Claude, etc. |
-| Search | Azure AI Search | Vector search for RAG |
+- Avoids recreating global/shared infra per environment
+- Keeps environment deployment repeatable and safer
+- Supports SaaS, Lighthouse, and Marketplace channels on one codebase
 
-### Networking
+## Requirements
 
-| Component | Service | Purpose |
-|-----------|---------|---------|
-| Virtual Network | VNet | Network isolation |
-| Private Endpoints | Private Link | Secure service access |
-| VPN Gateway | VPN | Secure admin access |
+- Azure subscription access (Owner-level for initial core operations)
+- Azure CLI authenticated to the right tenant/subscription
+- `gh` CLI for workflow/variable operations
+- `jq`
 
-### Security
+## Next
 
-| Component | Service | Purpose |
-|-----------|---------|---------|
-| Secrets | Key Vault | Credential management |
-| Identity | Entra ID | Authentication |
-| Configuration | App Configuration | Runtime configuration |
-
-## Prerequisites
-
-Before deploying, ensure you have:
-
-- **Azure Subscription** with Owner access
-- **Azure CLI** installed and authenticated
-- **GitHub** access for deployment workflows
-- **Domain** for your Impact AI instance
-
-### Required Permissions
-
-- Resource Group creation
-- Entra ID application registration
-- Container Apps Environment creation
-- PostgreSQL Flexible Server creation
-- Key Vault creation
-
-### Resource Requirements
-
-| Resource | Minimum | Recommended |
-|----------|---------|-------------|
-| vCPUs | 8 | 16 |
-| Memory | 16 GB | 32 GB |
-| Storage | 100 GB | 500 GB |
-| PostgreSQL | B2s | D2s_v3 |
-| Redis | Basic | Standard |
-
-## Supported Regions
-
-Deploy in any Azure region that supports:
-- Container Apps
-- PostgreSQL Flexible Server
-- Azure AI Foundry
-
-Recommended: `swedencentral`, `eastus`, `westeurope`
-
-## Deployment Channels
-
-### Standard Deployment
-
-Deploy via GitHub Actions for full control:
-
-1. Fork the infrastructure repository
-2. Configure GitHub environment
-3. Run deployment workflow
-4. Access your instance
-
-### Azure Marketplace
-
-Coming soon: One-click deployment from Azure Marketplace.
-
-### Lighthouse (MSP)
-
-For managed service providers, deploy into customer subscriptions with delegated access.
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Deployment Guide" icon="rocket" href="/self-hosted/deployment">
-    Step-by-step deployment instructions
-  </Card>
-  <Card title="Contact Sales" icon="envelope" href="mailto:sales@impact.ai">
-    Get help with enterprise deployment
-  </Card>
-</CardGroup>
+- [Deployment Guide](/self-hosted/deployment)

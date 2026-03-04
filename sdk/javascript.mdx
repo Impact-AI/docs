@@ -1,0 +1,129 @@
+---
+title: JavaScript / TypeScript SDK
+description: "Single-page guide for @impact-ai/sdk on Node.js"
+icon: "code"
+---
+
+The JS/TS SDK is designed for Node.js services and Next.js server runtimes.
+
+Package: `@impact-ai/sdk`
+
+## Requirements
+
+- Node.js `>=18.19.0`
+
+## Install
+
+```bash
+npm i @impact-ai/sdk
+```
+
+## Quickstart
+
+```ts
+import impact from "@impact-ai/sdk";
+
+impact.init({
+  apiKey: process.env.IMPACT_API_KEY,
+  serviceName: "my-node-service",
+  mode: "auto",
+});
+
+impact.context({
+  userId: "user_123",
+  interactionId: "conv_456",
+  versionId: "v1",
+  attributes: { plan: "pro" },
+});
+
+const run = impact.trace("business.workflow", async (input: string) => {
+  return { ok: true, input };
+});
+
+await run("hello");
+await impact.shutdown();
+```
+
+<Note>
+  For Impact Cloud, `apiKey` is usually enough. For self-hosted/custom endpoint routing, pass `endpoint` in
+  `impact.init(...)` or set `IMPACT_BASE_URL`.
+</Note>
+
+## API Surface
+
+- `impact.init(options?)`
+- `impact.context(ctx)`
+- `impact.trace(...)`
+- `impact.flush()`
+- `impact.shutdown()`
+- `impact.vercelAITelemetry(options?)`
+- `impact.instrumentationResults` (getter)
+
+## Runtime Modes
+
+- `auto`: attach when possible, else bootstrap
+- `attach`: require existing tracer provider
+- `bootstrap`: always create/register provider
+
+## Endpoint Resolution
+
+By default, endpoint routing is derived from `IMPACT_API_KEY` (`impact_<region>_*` format).
+For self-hosted/custom setups, override via `init({ endpoint })` or `IMPACT_BASE_URL`.
+
+## `impact.trace` Example (Decorator-Equivalent)
+
+```ts
+import impact from "@impact-ai/sdk";
+
+impact.init({ apiKey: process.env.IMPACT_API_KEY });
+
+const summarizeTicket = impact.trace(
+  "summarize_ticket",
+  async (ticket: string) => {
+    return { summary: `summary:${ticket}` };
+  },
+  { type: "workflow" },
+);
+
+await summarizeTicket("Customer cannot reset password");
+```
+
+## Vercel AI SDK Example
+
+```ts
+import { generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
+import impact from "@impact-ai/sdk";
+
+impact.init({ apiKey: process.env.IMPACT_API_KEY });
+
+await generateText({
+  model: openai("gpt-4.1-mini"),
+  prompt: "hello",
+  experimental_telemetry: impact.vercelAITelemetry(),
+});
+```
+
+## Coverage Summary
+
+The JS SDK includes best-effort registration for common providers/frameworks, including:
+
+- OpenAI and OpenAI Agents
+- Anthropic, Azure OpenAI, Bedrock, Cohere, Together, Vertex AI
+- Google GenAI
+- LangChain, LangGraph, LlamaIndex
+- MCP and vector DB instrumentations (Pinecone, Qdrant, ChromaDB)
+
+Per-runtime results are available via `impact.instrumentationResults`.
+
+## Recommended Flow
+
+1. Initialize at startup before first provider usage.
+2. Set context per request.
+3. Use `impact.trace` for orchestration logic.
+4. Call `flush()`/`shutdown()` in serverless or controlled shutdown paths.
+
+## Next
+
+- [Python SDK Overview](/sdk/overview)
+- [Tools Overview](/tools/overview)

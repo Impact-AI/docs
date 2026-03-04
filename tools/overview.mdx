@@ -1,0 +1,55 @@
+---
+title: Tools and Services Overview
+description: "Current backend services that power evaluation, tagging, generation, and admin operations"
+icon: "server"
+---
+
+This section replaces older agent-first documentation with the current service/tool architecture.
+
+## Core Evaluation Stack
+
+| Service | Responsibility |
+|---|---|
+| `impact-telemetry` | OTLP ingest (`/v1/traces`, `/v1/logs`) |
+| `impact-metric` | Span normalization and trace/interaction metric processing |
+| `impact-eval` | Event-driven score generation for eval modules |
+| `impact-lens` | Event-driven tagging/classification for lens modules |
+| `impact-issue` | Diagnosis and issue aggregation endpoints |
+
+## Authoring and Tooling
+
+| Service | Responsibility |
+|---|---|
+| `impact-studio` | Deep research, scoring preview, module storage |
+| `admin` | Workspace, membership, onboarding, API keys, product/version setup |
+
+## Synthetic Data and Testing Services
+
+| Service | Responsibility |
+|---|---|
+| `impact-persona` | Persona generation |
+| `impact-synt` | Artificial user generation |
+| `impact-simulate` | Interaction simulation generation |
+
+## Event-Driven Pattern
+
+Several services subscribe to new trace events and process asynchronously. This supports scalable ingestion and avoids blocking your app path.
+
+## Primary Service Endpoints
+
+- `impact-telemetry`: `POST /v1/traces`, `POST /v1/logs`
+- `impact-studio`: `POST /api/v1/tools/deep_research`, `POST /api/v1/tools/scoring_preview`
+- `impact-eval`: `GET /health` (runtime driven by subscriptions)
+- `impact-lens`: `POST /tag_interaction/`, `POST /store/tag_interaction/`
+- `admin`: workspace, key, invite, setup, and document routes
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Impact Eval" icon="gauge" href="/tools/impact-eval">
+    One-to-five and flag scoring service behavior.
+  </Card>
+  <Card title="Synthetic Services" icon="users" href="/tools/synthetic-services">
+    Persona, artificial user, and interaction generation stack.
+  </Card>
+</CardGroup>

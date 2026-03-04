@@ -22,7 +22,7 @@
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://app.impact.ai"
+      "href": "https://beta.impact.ai"
     }
   },
   "navigation": {
@@ -34,8 +34,25 @@
             "group": "Get Started",
             "pages": [
               "introduction",
-              "concepts",
-              "quickstart"
+              "quickstart",
+              "concepts"
+            ]
+          },
+          {
+            "group": "Python SDK",
+            "pages": [
+              "sdk/overview",
+              "sdk/installation",
+              "sdk/initialization",
+              "sdk/context",
+              "sdk/tracing",
+              "sdk/providers"
+            ]
+          },
+          {
+            "group": "JavaScript SDK",
+            "pages": [
+              "sdk/javascript"
             ]
           },
           {
@@ -48,57 +65,15 @@
             ]
           },
           {
-            "group": "Agents",
+            "group": "Tools & Services",
             "pages": [
-              "agents/overview",
-              "agents/laila",
-              "agents/max",
-              "agents/iris",
-              "agents/orion",
-              "agents/sage"
+              "tools/overview",
+              "tools/impact-eval",
+              "tools/synthetic-services"
             ]
           },
           {
-            "group": "Features",
-            "pages": [
-              "features/synthetic-users",
-              "features/user-personas",
-              "features/simulations"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "SDK",
-        "groups": [
-          {
-            "group": "Getting Started",
-            "pages": [
-              "sdk/overview",
-              "sdk/installation"
-            ]
-          },
-          {
-            "group": "Core Concepts",
-            "pages": [
-              "sdk/initialization",
-              "sdk/tracing",
-              "sdk/context"
-            ]
-          },
-          {
-            "group": "Integrations",
-            "pages": [
-              "sdk/providers"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Self-Hosted",
-        "groups": [
-          {
-            "group": "Deployment",
+            "group": "Self-Hosted",
             "pages": [
               "self-hosted/overview",
               "self-hosted/deployment"

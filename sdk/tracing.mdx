@@ -1,273 +1,74 @@
 ---
 title: Custom Tracing
-description: "Add custom spans to your traces with decorators"
+description: "Use @trace to add manual workflow spans around application logic"
 icon: "route"
 ---
 
-While the SDK automatically traces LLM calls, you can add custom spans to capture your application logic.
+Auto-instrumentation captures provider calls. Use `@trace` for your own workflow steps.
 
-## The @trace Decorator
-
-Use the `@trace` decorator to create spans for any function:
+## Decorator API
 
 ```python
-from impact.sdk import trace
+from impact import trace
 
 @trace
-def process_request(user_input: str) -> str:
-    # Your logic here
-    return result
+@trace(type="workflow")
+@trace(type="tool", name="search_docs", attributes={"index": "products"})
+def fn(...):
+    ...
 ```
 
 ## Parameters
 
-```python
-@trace(
-    name: str | None = None,
-    type: str = "span",
-    attributes: dict | None = None
-)
-```
+| Parameter | Description |
+|---|---|
+| `type` | Span classification string (default: `"span"`) |
+| `name` | Optional span name override (default: function qualname) |
+| `attributes` | Custom attributes stored as `impact.trace.<key>` |
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `name` | `str` | Function name | Custom span name |
-| `type` | `str` | `"span"` | Span type for categorization |
-| `attributes` | `dict` | `None` | Custom attributes to attach |
+Reserved suffixes are protected (`type`, `name`, `path`, `input`, `output`).
 
-## Basic Usage
+## Captured Fields
 
-### Default Name
+The decorator sets:
 
-```python
-@trace
-def my_function():
-    pass
-# Span name: "my_function"
-```
+- `impact.trace.type`
+- `impact.trace.name`
+- `impact.trace.path`
+- `impact.trace.input`
+- `impact.trace.output`
 
-### Custom Name
+Errors are recorded on the span and status is set to `ERROR`.
+
+## Nested Example
 
 ```python
-@trace(name="process_user_request")
-def handle_request():
-    pass
-# Span name: "process_user_request"
-```
+from impact import trace
 
-### With Attributes
-
-```python
-@trace(
-    name="retrieve_documents",
-    attributes={"retriever": "pinecone", "top_k": 5}
-)
-def get_context(query: str):
-    pass
-```
-
-## Span Types
-
-Use the `type` parameter to categorize spans:
-
-```python
-@trace(type="workflow")
-def agent_workflow():
-    pass
-
-@trace(type="task")
-def process_step():
-    pass
-
-@trace(type="tool")
-def call_external_api():
-    pass
-```
-
-Common types:
-- `workflow` — High-level orchestration
-- `task` — Individual processing steps
-- `tool` — External service calls
-- `retrieval` — Vector database queries
-- `span` — Generic (default)
-
-## Automatic Capture
-
-The decorator automatically captures:
-
-- **Input**: Function arguments (args and kwargs)
-- **Output**: Return value
-- **Errors**: Exceptions with stack traces
-- **Timing**: Start time and duration
-- **Path**: Hierarchical path in the trace tree
-
-## Nested Spans
-
-Decorators nest correctly to show execution hierarchy:
-
-```python
-from impact.sdk import trace
-
-@trace(name="chat_handler", type="workflow")
+@trace(type="workflow", name="chat_request")
 def handle_chat(message: str) -> str:
     context = retrieve_context(message)
-    response = generate_response(message, context)
-    return response
+    return generate_answer(message, context)
 
-@trace(name="retrieve_context", type="retrieval")
-def retrieve_context(query: str) -> list:
-    # Vector search logic
-    return documents
+@trace(type="retrieval")
+def retrieve_context(query: str):
+    ...
 
-@trace(name="generate_response", type="task")
-def generate_response(message: str, context: list) -> str:
-    # LLM call (auto-traced)
-    return response
+@trace(type="task")
+def generate_answer(query: str, context):
+    ...
 ```
 
-This produces a trace tree:
+## Async and Streaming Support
 
-```
-chat_handler (workflow)
-├── retrieve_context (retrieval)
-└── generate_response (task)
-    └── openai.chat (gen_ai.chat) [auto-traced]
-```
+`@trace` supports:
 
-## Async Support
+- sync functions
+- async functions
+- generators
+- async generators
 
-The decorator works with async functions:
+## Next
 
-```python
-@trace(name="async_handler")
-async def handle_async_request():
-    result = await some_async_operation()
-    return result
-```
-
-## Generator Support
-
-Works with generators and async generators:
-
-```python
-@trace(name="stream_response")
-def stream_tokens():
-    for token in generate_tokens():
-        yield token
-
-@trace(name="async_stream")
-async def async_stream():
-    async for chunk in get_chunks():
-        yield chunk
-```
-
-## Class Methods
-
-Use on class methods:
-
-```python
-class ChatAgent:
-    @trace(name="agent.process")
-    def process(self, message: str) -> str:
-        return self.generate(message)
-    
-    @trace(name="agent.generate")
-    async def generate(self, message: str) -> str:
-        # LLM call
-        return response
-```
-
-## Error Handling
-
-Errors are automatically captured and the span is marked as failed:
-
-```python
-@trace(name="risky_operation")
-def might_fail():
-    raise ValueError("Something went wrong")
-    
-# The span will have:
-# - status: ERROR
-# - error message: "Something went wrong"
-# - exception details
-```
-
-## Best Practices
-
-<AccordionGroup>
-  <Accordion title="Name spans descriptively">
-    Use clear, descriptive names that explain what the span does:
-    
-    ```python
-    # Good
-    @trace(name="validate_user_input")
-    @trace(name="fetch_customer_data")
-    @trace(name="generate_summary")
-    
-    # Avoid
-    @trace(name="step1")
-    @trace(name="process")
-    @trace(name="do_thing")
-    ```
-  </Accordion>
-  
-  <Accordion title="Use appropriate types">
-    Categorize spans to make traces easier to understand:
-    
-    ```python
-    @trace(type="workflow")  # Top-level orchestration
-    @trace(type="task")      # Processing steps
-    @trace(type="tool")      # External calls
-    @trace(type="retrieval") # Data fetching
-    ```
-  </Accordion>
-  
-  <Accordion title="Don't over-trace">
-    Trace meaningful operations, not every function:
-    
-    ```python
-    # Good - traces the meaningful operation
-    @trace(name="process_order")
-    def process_order(order):
-        validate(order)      # Don't need to trace
-        save(order)          # Don't need to trace
-        notify(order)        # Don't need to trace
-    
-    # Avoid - too granular
-    @trace
-    def validate(order): pass
-    @trace
-    def save(order): pass
-    @trace  
-    def notify(order): pass
-    ```
-  </Accordion>
-  
-  <Accordion title="Add relevant attributes">
-    Include attributes that help with debugging and analysis:
-    
-    ```python
-    @trace(
-        name="search_documents",
-        attributes={
-            "index": "products",
-            "top_k": 10,
-            "threshold": 0.8
-        }
-    )
-    def search(query: str):
-        pass
-    ```
-  </Accordion>
-</AccordionGroup>
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Context" icon="link" href="/sdk/context">
-    Associate traces with users and sessions
-  </Card>
-  <Card title="Providers" icon="plug" href="/sdk/providers">
-    See all supported AI providers
-  </Card>
-</CardGroup>
+- [Context](/sdk/context)
+- [Supported Providers](/sdk/providers)
