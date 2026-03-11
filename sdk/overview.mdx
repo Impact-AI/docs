@@ -1,10 +1,19 @@
 ---
-title: Python SDK Overview
-description: "Impact Python SDK (`impact`) for OTLP-native tracing and evaluation observability"
+title: SDK Overview
+description: "Impact SDKs for OpenTelemetry-native LLM observability"
 icon: "code"
 ---
 
-The Python SDK is the primary integration path for Impact AI.
+Impact provides official SDKs for Python and JavaScript/TypeScript.
+
+| Language | Package | Install |
+|---|---|---|
+| Python | `impact` | `pip install impact` |
+| JavaScript/TypeScript | `impact-ai` | `npm i impact-ai` |
+
+Both SDKs share the same design principles and API semantics.
+
+## Python SDK
 
 Package name: `impact`
 
@@ -68,14 +77,58 @@ For self-hosted/custom deployments, override endpoint with:
 - Context is stored via `contextvars`, so it works with async/threaded flows
 - `shutdown()` flushes and stops Impact-owned processors/exporters
 
+## JavaScript/TypeScript SDK
+
+Package name: `impact-ai`
+
+### What It Does
+
+- Sends traces and logs to Impact over OTLP HTTP
+- Auto-instruments supported AI providers/frameworks
+- Attaches `impact.context.*` attributes across execution context
+- Provides manual span tracing via `impact.trace()`
+- Works in BYO OpenTelemetry setups (`auto`, `attach`, `bootstrap`)
+
+### Minimal Integration
+
+```typescript
+import impact from "impact-ai";
+import OpenAI from "openai";
+
+impact.init();
+impact.context({
+  userId: "u_123",
+  interactionId: "int_456",
+});
+
+const client = new OpenAI();
+await client.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: "Hello" }],
+});
+```
+
+### Public API
+
+```typescript
+import impact from "impact-ai";
+
+impact.init({ ... });
+impact.context({ ... });
+impact.trace("name", fn);
+impact.flush();
+impact.shutdown();
+impact.vercelAITelemetry();
+```
+
 ## Recommended Next Pages
 
 <CardGroup cols={2}>
-  <Card title="Installation" icon="download" href="/sdk/installation">
-    Install package and configure environment variables.
+  <Card title="Python Installation" icon="python" href="/sdk/installation">
+    Install Python SDK and configure credentials.
   </Card>
-  <Card title="Initialization" icon="sliders" href="/sdk/initialization">
-    Full `init()` parameters and BYO OpenTelemetry setup.
+  <Card title="JavaScript SDK" icon="js" href="/sdk/javascript">
+    Full JS/TS SDK documentation.
   </Card>
   <Card title="Context" icon="link" href="/sdk/context">
     Attach user/session metadata to traces.

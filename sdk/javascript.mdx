@@ -1,101 +1,98 @@
 ---
-title: JavaScript / TypeScript SDK
-description: "Single-page guide for @impact-ai/sdk on Node.js"
-icon: "code"
+title: JavaScript SDK
+description: "Impact JS/TS SDK (`impact-ai`) for OpenTelemetry-native observability"
+icon: "js"
 ---
 
-The JS/TS SDK is designed for Node.js services and Next.js server runtimes.
-
-Package: `@impact-ai/sdk`
-
-## Requirements
-
-- Node.js `>=18.19.0`
+Use the official JS/TS SDK package: `impact-ai`.
 
 ## Install
 
 ```bash
-npm i @impact-ai/sdk
+npm i impact-ai
 ```
 
 ## Quickstart
 
-```ts
-import impact from "@impact-ai/sdk";
+```typescript
+import impact from "impact-ai";
+import OpenAI from "openai";
 
 impact.init({
   apiKey: process.env.IMPACT_API_KEY,
-  serviceName: "my-node-service",
-  mode: "auto",
+  endpoint: process.env.IMPACT_BASE_URL, // optional for impact_<region>_* keys
 });
 
 impact.context({
   userId: "user_123",
-  interactionId: "conv_456",
-  versionId: "v1",
-  attributes: { plan: "pro" },
+  interactionId: "interaction_456",
+  versionId: "v1.0.0",
+  attributes: { team: "growth" },
 });
 
-const run = impact.trace("business.workflow", async (input: string) => {
-  return { ok: true, input };
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
-await run("hello");
+const response = await client.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: "Say hello in one sentence." }],
+});
+
+console.log(response.choices[0]?.message?.content);
 await impact.shutdown();
 ```
 
-<Note>
-  For Impact Cloud, `apiKey` is usually enough. For self-hosted/custom endpoint routing, pass `endpoint` in
-  `impact.init(...)` or set `IMPACT_BASE_URL`.
-</Note>
+## Startup Model
 
-## API Surface
+1. Import `impact-ai` and call `impact.init(...)` first.
+2. Import provider SDKs directly (`openai`, `@openai/agents`, `@google/genai`, etc.).
+3. Keep `impact.init(...)` at startup so instrumentation attaches before first provider call.
 
-- `impact.init(options?)`
-- `impact.context(ctx)`
-- `impact.trace(...)`
-- `impact.flush()`
-- `impact.shutdown()`
-- `impact.vercelAITelemetry(options?)`
-- `impact.instrumentationResults` (getter)
+## Public API
+
+- `init(options?)`
+- `context(ctx)`
+- `trace(...)`
+- `flush()`
+- `shutdown()`
+- `instrumentationResults`
+- `vercelAITelemetry(options?)`
 
 ## Runtime Modes
 
-- `auto`: attach when possible, else bootstrap
-- `attach`: require existing tracer provider
-- `bootstrap`: always create/register provider
+| Mode | Behavior |
+|---|---|
+| `auto` | Attach when possible, otherwise bootstrap |
+| `bootstrap` | Always create/register Impact providers |
+| `attach` | Require existing provider, never replace it |
 
 ## Endpoint Resolution
 
-By default, endpoint routing is derived from `IMPACT_API_KEY` (`impact_<region>_*` format).
-For self-hosted/custom setups, override via `init({ endpoint })` or `IMPACT_BASE_URL`.
+1. `init({ endpoint })`
+2. `IMPACT_BASE_URL`
+3. Derived from `impact_<region>_*` API key
 
-## `impact.trace` Example (Decorator-Equivalent)
+## Next.js
 
-```ts
-import impact from "@impact-ai/sdk";
+```typescript
+// instrumentation.ts
+import impact from "impact-ai";
 
-impact.init({ apiKey: process.env.IMPACT_API_KEY });
-
-const summarizeTicket = impact.trace(
-  "summarize_ticket",
-  async (ticket: string) => {
-    return { summary: `summary:${ticket}` };
-  },
-  { type: "workflow" },
-);
-
-await summarizeTicket("Customer cannot reset password");
+export async function register() {
+  impact.init({
+    apiKey: process.env.IMPACT_API_KEY,
+    endpoint: process.env.IMPACT_BASE_URL,
+  });
+}
 ```
 
-## Vercel AI SDK Example
+## Vercel AI SDK
 
-```ts
+```typescript
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
-import impact from "@impact-ai/sdk";
-
-impact.init({ apiKey: process.env.IMPACT_API_KEY });
+import impact from "impact-ai";
 
 await generateText({
   model: openai("gpt-4.1-mini"),
@@ -104,26 +101,34 @@ await generateText({
 });
 ```
 
-## Coverage Summary
+<Note>
+  `impact.init(...)` must run before first AI SDK usage.
+  Add `experimental_telemetry: impact.vercelAITelemetry()` to each traced AI SDK call.
+</Note>
 
-The JS SDK includes best-effort registration for common providers/frameworks, including:
+## Diagnostics
 
-- OpenAI and OpenAI Agents
-- Anthropic, Azure OpenAI, Bedrock, Cohere, Together, Vertex AI
-- Google GenAI
-- LangChain, LangGraph, LlamaIndex
-- MCP and vector DB instrumentations (Pinecone, Qdrant, ChromaDB)
+```typescript
+impact.init({ diagLogLevel: "warn" });
+```
 
-Per-runtime results are available via `impact.instrumentationResults`.
+```bash
+export IMPACT_DIAG_LOG_LEVEL=warn
+```
 
-## Recommended Flow
+## Validate Instrumentation
 
-1. Initialize at startup before first provider usage.
-2. Set context per request.
-3. Use `impact.trace` for orchestration logic.
-4. Call `flush()`/`shutdown()` in serverless or controlled shutdown paths.
+```typescript
+impact.init();
+console.log(impact.instrumentationResults);
+```
 
-## Next
+## Serverless
 
-- [Python SDK Overview](/sdk/overview)
-- [Tools Overview](/tools/overview)
+```typescript
+export async function handler(event: unknown) {
+  // your logic
+  await impact.flush();
+  return { ok: true };
+}
+```

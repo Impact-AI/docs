@@ -1,68 +1,126 @@
 ---
 title: Supported Providers
-description: "Python auto-instrumentation coverage for model, agent, and tool frameworks"
+description: "Auto-instrumentation coverage for model, agent, and tool frameworks"
 icon: "plug"
 ---
 
-The SDK attempts best-effort auto-instrumentation at `impact.init()`.
+Both SDKs attempt best-effort auto-instrumentation at `init()`. If a provider package is not installed, it is skipped without failing your app.
 
-If a provider package is not installed, it is skipped without failing your app.
+## Python SDK Coverage
 
-## Model Providers
+### Model Providers
 
-- OpenAI
-- AWS Bedrock
-- Anthropic
-- Cohere
-- Mistral
-- Watsonx
-- Groq
-- Together
-- Ollama
-- Google GenAI
-- Vertex AI (legacy/deprecating path)
+| Provider | Status |
+|---|---|
+| OpenAI | Covered |
+| AWS Bedrock | Covered |
+| Anthropic | Covered |
+| Cohere | Covered |
+| Mistral | Covered |
+| Watsonx | Covered |
+| Groq | Covered |
+| Together | Covered |
+| Ollama | Covered |
+| Google GenAI | Covered |
+| Vertex AI | Covered |
 
-## Agent and Orchestration Frameworks
+### Agent and Orchestration Frameworks
 
-- OpenAI Agents
-- Azure AI Agents / Foundry Agents
-- Microsoft Agent Framework
-- LangChain
-- LlamaIndex
-- CrewAI
-- Agno
-- Haystack
-- Pydantic AI
+| Framework | Status |
+|---|---|
+| OpenAI Agents | Covered |
+| Azure AI Agents / Foundry Agents | Covered |
+| Microsoft Agent Framework | Covered |
+| LangChain | Covered |
+| LlamaIndex | Covered |
+| CrewAI | Covered |
+| Agno | Covered |
+| Haystack | Covered |
+| Pydantic AI | Covered |
 
-## Tooling and Infra Instrumentation
+### Tooling and Infrastructure
 
 - HTTPX client spans
 - Azure AI Search instrumentation
 - MCP instrumentation
 
-## Notes on Coverage
+## JavaScript SDK Coverage
+
+### Model Providers
+
+| Provider | Status |
+|---|---|
+| OpenAI | Covered |
+| Azure OpenAI | Covered |
+| Anthropic | Covered |
+| AWS Bedrock | Covered |
+| Google GenAI (`@google/genai`) | Covered |
+| Google Vertex AI | Covered |
+| Cohere | Covered |
+| Together AI | Covered |
+| OpenAI-compatible (xAI, Fireworks, etc.) | Covered |
+
+### Agent and Orchestration Frameworks
+
+| Framework | Status |
+|---|---|
+| OpenAI Agents SDK | Covered |
+| Azure AI Agents / Foundry Agents | Covered |
+| LangChain | Covered |
+| LlamaIndex | Covered |
+| Microsoft Agent Framework | Model calls only |
+
+### Tooling and Infrastructure
+
+| Tool | Status |
+|---|---|
+| MCP | Covered |
+| Pinecone | Covered |
+| Qdrant | Covered |
+| ChromaDB | Covered |
+
+## Coverage Notes
 
 - Coverage depends on upstream instrumentation package behavior.
 - Some frameworks emit richer logs/events when OTLP logs are enabled.
-- In mixed environments, dependency conflicts are handled as non-fatal skips.
+- Dependency conflicts are handled as non-fatal skips.
+- Check `instrumentationResults` (JS) or logs (Python) to verify what loaded.
 
 ## Example
 
-```python
+<CodeGroup>
+
+```python Python
 import impact
 
-impact.init()  # registers available provider instrumentations
+impact.init()
 ```
+
+```typescript JavaScript
+import impact from "impact-ai";
+
+impact.init();
+console.log(impact.instrumentationResults);
+```
+
+</CodeGroup>
 
 ## Disable Specific Instrumentations
 
-Use OpenTelemetry disable flags when needed, for example:
+<CodeGroup>
 
-```bash
+```bash Python
 export OTEL_PYTHON_DISABLED_INSTRUMENTATIONS=openai,anthropic
 ```
 
+```typescript JavaScript
+// Check instrumentationResults for what loaded
+// Individual disable flags depend on upstream packages
+```
+
+</CodeGroup>
+
 ## Next
 
+- [Python SDK](/sdk/overview)
 - [JavaScript SDK](/sdk/javascript)
-- [Impact Eval Service](/tools/impact-eval)
