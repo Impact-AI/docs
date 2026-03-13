@@ -1,0 +1,72 @@
+---
+title: Setup
+description: "Install the Python SDK and configure credentials"
+icon: "download"
+---
+
+## Requirements
+
+- Python 3.10+
+- Network access to your Impact OTLP endpoint
+
+## Install
+
+<CodeGroup>
+
+```bash pip
+pip install impact
+```
+
+```bash uv
+uv add impact
+```
+
+```bash poetry
+poetry add impact
+```
+
+</CodeGroup>
+
+<Accordion title="Installing provider SDKs alongside Impact">
+  Install the provider SDKs you use alongside it:
+
+  ```bash
+  pip install impact openai
+  pip install impact google-genai
+  pip install impact boto3
+  pip install impact anthropic
+  ```
+
+  Impact skips missing providers automatically — no errors.
+</Accordion>
+
+## Set Your API Key
+
+```bash
+export IMPACT_API_KEY="impact_<region>_<token>"
+```
+
+<Info>
+  For custom routing, you can override the traces destination via:
+  - `api_endpoint` passed to `init()` (see [Initialize](/sdk/python/initialize))
+  - `IMPACT_BASE_URL` environment variable
+</Info>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Missing api_key error">
+    Set `IMPACT_API_KEY` or pass `api_key=` explicitly to `impact.init()`.
+  </Accordion>
+  <Accordion title="Could not resolve endpoint from API key">
+    Use an `impact_<region>_*` key format, or set `IMPACT_BASE_URL` for self-hosted/custom routing.
+  </Accordion>
+  <Accordion title="No traces arriving">
+    Verify outbound access to `<endpoint>/v1/traces` and check auth key scope/version.
+  </Accordion>
+</AccordionGroup>
+
+## Next
+
+- [Initialize](/sdk/python/initialize)
+- [Instrument](/sdk/python/instrument)

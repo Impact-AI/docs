@@ -1,0 +1,86 @@
+---
+title: Instrument
+description: "Add context, manual tracing, and framework-specific patterns"
+icon: "code"
+---
+
+`init()` already traces your provider calls automatically. With a few extra lines — user IDs, interaction IDs, and structured spans — you unlock the full power of Impact: per-user analytics, automated evaluations, version comparisons, and smart alerts. It's a small effort that pays off big. Check out our [best practices](/sdk/best-practices) to get the most out of it.
+
+## Context
+
+Attach metadata to all spans in the current execution flow. Values propagate to child spans.
+
+```typescript
+impact.context({
+  userId: "user_123",
+  interactionId: "conversation_456",
+  versionId: "v1.0.0",
+});
+```
+
+See [all context fields](/sdk/javascript/api-reference#impactcontextctx).
+
+<Tip>
+  Set context early (middleware or handler top). Always provide `userId` and `interactionId`.
+</Tip>
+
+## Manual Tracing
+
+Wrap any function in a named span for visibility beyond auto-instrumented calls.
+
+### Basic Usage
+
+```typescript
+const routeTicket = impact.trace(
+  "triage_agent",
+  async (ticket: string) => {
+    return ticket.toUpperCase();
+  },
+  { type: "agent" },
+);
+
+const searchDocs = impact.trace(
+  "search_docs",
+  async (query: string) => {
+    return { results: [] };
+  },
+  { type: "tool" },
+);
+```
+
+See [all trace options](/sdk/javascript/api-reference#impacttracename-fn-options).
+
+### Without a Name
+
+When you omit the name, the SDK uses the function's `.name` property:
+
+```typescript
+async function processPayment(amount: number) {
+  return { charged: amount };
+}
+
+const traced = impact.trace(processPayment);
+await traced(49.99);
+// Span name: "processPayment"
+```
+
+### Async Iterables (Streaming)
+
+`impact.trace()` detects async iterables automatically:
+
+```typescript
+const streamChat = impact.trace("stream_chat", async function* () {
+  yield "Hello";
+  yield " World";
+});
+
+for await (const chunk of streamChat()) {
+  process.stdout.write(chunk);
+}
+```
+
+## Next
+
+- [Recipes](/sdk/javascript/recipes) — framework-specific patterns and full examples
+- [Integrations](/sdk/javascript/integrations)
+- [API Reference](/sdk/javascript/api-reference)

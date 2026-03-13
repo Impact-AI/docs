@@ -1,0 +1,121 @@
+---
+title: Integrations
+description: "Provider, framework, and tool coverage for the JavaScript SDK"
+icon: "plug"
+---
+
+Auto-instrumentation is best-effort. If a provider package is not installed, it is skipped silently.
+
+## Model Providers
+
+| Integration | Package | Enabled by Default |
+|---|---|---|
+| OpenAI | `openai` | Yes |
+| Anthropic | `@anthropic-ai/sdk` | Yes |
+| Azure OpenAI | `@azure/openai` | Yes |
+| AWS Bedrock | `@aws-sdk/client-bedrock-runtime` | Yes |
+| Google GenAI | `@google/genai` | Yes |
+| Google Vertex AI | `@google-cloud/vertexai` | Yes |
+| Mistral | `@mistralai/mistralai` | Yes |
+| Groq | `groq-sdk` | Yes |
+| Ollama | `ollama` | Yes |
+| IBM watsonx.ai | `@ibm-cloud/watsonx-ai` | Yes |
+| Cohere | `cohere-ai` | Yes |
+| Together AI | `together-ai` | Yes |
+| **OpenAI-compatible** (xAI, Fireworks, Cerebras, SambaNova, OpenRouter, etc.) | `openai` | Yes |
+
+<Note>
+  OpenAI-compatible providers are automatically captured when using the OpenAI SDK with a custom `baseURL`.
+</Note>
+
+## Agent Frameworks
+
+| Integration | Package | Enabled by Default |
+|---|---|---|
+| OpenAI Agents SDK | `@openai/agents` | Yes |
+| LangGraph | `@langchain/langgraph` | Yes |
+| LangChain | `@langchain/core` | No (opt-in) |
+| LlamaIndex | `llamaindex` | Yes |
+| Azure Foundry Agents | `@azure/ai-agents` | No (opt-in) |
+| Microsoft Agent Framework | `@microsoft/agent-framework` | Yes |
+
+## Tooling
+
+| Integration | Package | Enabled by Default |
+|---|---|---|
+| Model Context Protocol (MCP) | `@modelcontextprotocol/sdk` | Yes |
+
+## Vector Databases
+
+| Integration | Package | Enabled by Default |
+|---|---|---|
+| Pinecone | `@pinecone-database/pinecone` | Yes |
+| Qdrant | `@qdrant/js-client-rest` | Yes |
+| ChromaDB | `chromadb` | Yes |
+
+## Enabling Opt-In Integrations
+
+LangChain and Azure Foundry Agents are disabled by default. Enable them explicitly:
+
+```typescript
+impact.init({
+  apiKey: process.env.IMPACT_API_KEY,
+  instrumentations: {
+    langchain: true,
+    foundryAgents: true,
+  },
+});
+```
+
+LangChain also requires a separate package install:
+
+```bash
+npm i @traceloop/instrumentation-langchain
+```
+
+## Disabling Specific Integrations
+
+```typescript
+impact.init({
+  apiKey: process.env.IMPACT_API_KEY,
+  instrumentations: {
+    anthropic: false,
+    pinecone: false,
+  },
+});
+```
+
+<AccordionGroup>
+  <Accordion title="Checking Instrumentation Status">
+    After initialization, inspect which instrumentations loaded successfully:
+
+    ```typescript
+    impact.init({ apiKey: process.env.IMPACT_API_KEY });
+
+    for (const result of impact.instrumentationResults) {
+      console.log(`${result.displayName}: ${result.code} — ${result.message}`);
+    }
+    ```
+
+    Each result includes:
+
+    | Field | Description |
+    |---|---|
+    | `key` | Instrumentation identifier (e.g., `"openai"`, `"anthropic"`). |
+    | `displayName` | Human-readable name. |
+    | `code` | Status: `enabled`, `disabled`, `module_not_found`, `module_load_error`, etc. |
+    | `message` | Descriptive status message. |
+    | `layer` | `model`, `agent`, `tooling`, or `vector_db`. |
+  </Accordion>
+
+  <Accordion title="Important Caveats">
+    - Coverage depends on upstream instrumentation packages.
+    - Some frameworks emit richer events when OTLP logs are enabled (`logsEnabled: true`).
+    - Dependency conflicts are handled as non-fatal skips.
+  </Accordion>
+</AccordionGroup>
+
+## Next
+
+- [Initialize](/sdk/javascript/initialize)
+- [Instrument](/sdk/javascript/instrument)

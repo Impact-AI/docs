@@ -1,0 +1,89 @@
+---
+title: Integrations
+description: "Provider, framework, and tool coverage for the Python SDK"
+icon: "plug"
+---
+
+Auto-instrumentation is best-effort — missing packages are skipped silently, errors are logged without crashing the app.
+
+## Model Providers
+
+| Integration | Package | Enabled by Default |
+|---|---|---|
+| OpenAI Python SDK | `openai` | Yes |
+| OpenAI-compatible providers | `openai` | Yes |
+| Google Gen AI | `google-genai` | Yes |
+| AWS Bedrock | `boto3` | Yes |
+| Anthropic | `anthropic` | Yes |
+| Cohere | `cohere` | Yes |
+| Mistral | `mistralai` | Yes |
+| IBM watsonx | `ibm-watsonx-ai` | Yes |
+| Groq | `groq` | Yes |
+| Together AI | `together` | Yes |
+| Ollama | `ollama` | Yes |
+| Vertex AI | `google-cloud-aiplatform` | Yes |
+
+<Note>
+  OpenAI-compatible providers are automatically captured when using the OpenAI SDK with a custom `base_url`.
+</Note>
+
+## Agent Frameworks
+
+| Integration | Package | Enabled by Default |
+|---|---|---|
+| OpenAI Agents SDK | `openai-agents` | Yes |
+| Microsoft Foundry Agents | `azure-ai-agents` | Yes |
+| Microsoft Agent Framework | `microsoft-agent-framework` | Yes |
+| LangChain | `langchain` | Yes |
+| LlamaIndex | `llama-index` | Yes |
+| CrewAI | `crewai` | Yes |
+| Agno | `agno` | Yes |
+| Haystack | `haystack-ai` | Yes |
+| Pydantic AI | `pydantic-ai` | Yes |
+
+## Tooling
+
+| Integration | Package | Enabled by Default |
+|---|---|---|
+| Model Context Protocol (MCP) | `mcp` | Yes |
+| HTTPX | `httpx` | Yes |
+| Azure AI Search | `azure-search-documents` | Yes |
+| ASGI apps | — | Manual (`impact.instrument_asgi_app`) |
+| Thread context propagation | — | Auto-enabled |
+
+## Vector Databases
+
+No vector database instrumentations are bundled with the Python SDK at this time. Vector store calls made through an instrumented framework (e.g. LangChain, LlamaIndex) are captured as part of that framework's spans.
+
+## Disabling Specific Integrations
+
+```bash
+export OTEL_PYTHON_DISABLED_INSTRUMENTATIONS=openai,anthropic
+```
+
+<AccordionGroup>
+  <Accordion title="Checking Instrumentation Status">
+    ```bash
+    export IMPACT_EXPORTER_DEBUG=1
+    ```
+  </Accordion>
+
+  <Accordion title="Caveats">
+    - `disable_logs=True` may reduce captured content — some instrumentors emit data via logs/events
+    - Call `impact.init()` before importing `haystack` (detects tracing at import time)
+    - If another library owns the `TracerProvider`, use `mode="auto"` or `mode="attach"`
+    - Vertex AI instrumentation is included but deprecating
+  </Accordion>
+
+  <Accordion title="How Auto-Instrumentation Works">
+    - `impact.init()` patches installed SDKs automatically
+    - Frameworks emitting native OTel spans are exported as-is
+    - No framework instrumentor? Model calls are still traced via the provider SDK
+    - Add missing visibility with `@impact.trace`
+  </Accordion>
+</AccordionGroup>
+
+## Next
+
+- [Initialize](/sdk/python/initialize)
+- [Instrument](/sdk/python/instrument)

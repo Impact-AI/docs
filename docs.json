@@ -2,10 +2,19 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Impact AI",
+  "appearance": {
+    "default": "dark",
+    "hideToggle": true
+  },
+  "background": {
+    "color": {
+      "dark": "#071735"
+    }
+  },
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#3BA7D1",
+    "light": "#61D4F2",
+    "dark": "#3BA7D1"
   },
   "favicon": "/favicon.png",
   "logo": {
@@ -21,62 +30,43 @@
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://beta.impact.ai"
+      "label": "Platform",
+      "href": "https://test.impact.ai"
     }
   },
   "navigation": {
     "tabs": [
       {
-        "tab": "Documentation",
+        "tab": "SDK",
         "groups": [
           {
-            "group": "Get Started",
-            "pages": [
-              "introduction",
-              "quickstart",
-              "concepts"
-            ]
-          },
-          {
-            "group": "Python SDK",
+            "group": "Overview",
             "pages": [
               "sdk/overview",
-              "sdk/installation",
-              "sdk/initialization",
-              "sdk/context",
-              "sdk/tracing",
-              "sdk/providers"
+              "sdk/instrumentation",
+              "sdk/best-practices"
             ]
           },
           {
             "group": "JavaScript SDK",
             "pages": [
-              "sdk/javascript"
+              "sdk/javascript/setup",
+              "sdk/javascript/initialize",
+              "sdk/javascript/instrument",
+              "sdk/javascript/integrations",
+              "sdk/javascript/recipes",
+              "sdk/javascript/api-reference"
             ]
           },
           {
-            "group": "Platform",
+            "group": "Python SDK",
             "pages": [
-              "platform/products",
-              "platform/modules",
-              "platform/intelligence",
-              "platform/impact-studio"
-            ]
-          },
-          {
-            "group": "Tools & Services",
-            "pages": [
-              "tools/overview",
-              "tools/impact-eval",
-              "tools/synthetic-services"
-            ]
-          },
-          {
-            "group": "Self-Hosted",
-            "pages": [
-              "self-hosted/overview",
-              "self-hosted/deployment"
+              "sdk/python/setup",
+              "sdk/python/initialize",
+              "sdk/python/instrument",
+              "sdk/python/integrations",
+              "sdk/python/recipes",
+              "sdk/python/api-reference"
             ]
           }
         ]
@@ -86,22 +76,15 @@
       "anchors": [
         {
           "anchor": "GitHub",
-          "href": "https://github.com/impactai",
+          "href": "https://github.com/impact-ai",
           "icon": "github"
-        },
-        {
-          "anchor": "Community",
-          "href": "https://discord.gg/impactai",
-          "icon": "discord"
         }
       ]
     }
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/impactai",
-      "github": "https://github.com/impactai",
-      "linkedin": "https://linkedin.com/company/impactai"
+      "github": "https://github.com/impact-ai"
     }
   },
   "analytics": {

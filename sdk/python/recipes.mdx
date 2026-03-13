@@ -1,0 +1,71 @@
+---
+title: Recipes
+description: "Framework-specific patterns and integration guides"
+icon: "book-open"
+---
+
+Ready-made patterns for common setups. Pick the one that matches your stack.
+
+## Web Frameworks (ASGI)
+
+Wrap your ASGI app with `instrument_asgi_app()` to get a root HTTP span per request. All model and tool spans are grouped under it automatically.
+
+### FastAPI
+
+```python
+import impact
+from fastapi import FastAPI
+
+impact.init()
+
+app = FastAPI()
+app = impact.instrument_asgi_app(app)
+```
+
+### Quart
+
+```python
+from quart import Quart
+import impact
+
+app = Quart(__name__)
+impact.init()
+app = impact.instrument_asgi_app(app)
+```
+
+Works with any ASGI framework — you can also wrap the callable directly:
+
+```python
+app.asgi_app = impact.instrument_asgi_app(app.asgi_app)
+```
+
+## Setting Context Per Request
+
+Use middleware to attach user and session IDs so every span in the request trace inherits them:
+
+```python
+from fastapi import FastAPI, Request
+import impact
+
+impact.init()
+app = FastAPI()
+
+@app.middleware("http")
+async def add_impact_context(request: Request, call_next):
+    impact.context(
+        user_id=request.headers.get("X-User-Id"),
+        interaction_id=request.headers.get("X-Session-Id"),
+    )
+    return await call_next(request)
+```
+
+## Serverless / Short-Lived Processes
+
+In environments like AWS Lambda or Cloud Functions, spans are buffered in memory. Call `shutdown()` before the function returns to flush everything:
+
+```python
+def handler(event, context):
+    # your logic
+    impact.shutdown()
+    return {"ok": True}
+```

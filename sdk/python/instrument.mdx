@@ -1,0 +1,68 @@
+---
+title: Instrument
+description: "Add context, manual tracing, and framework-specific patterns"
+icon: "code"
+---
+
+`init()` already traces your provider calls automatically. With a few extra lines — user IDs, interaction IDs, and structured spans — you unlock the full power of Impact: per-user analytics, automated evaluations, version comparisons, and smart alerts. It's a small effort that pays off big. Check out our [best practices](/sdk/best-practices) to get the most out of it.
+
+## Context
+
+Attach metadata to all spans in the current execution context.
+
+```python
+impact.context(
+    user_id="user_123",
+    interaction_id="conversation_456",
+    version_id="v1.0.0",
+)
+```
+
+<Tip>
+  Set context early (middleware or handler top). Always provide `user_id` and `interaction_id`.
+</Tip>
+
+## Manual Tracing
+
+Use `@trace` to create product-level spans around your own orchestration code.
+
+### Basic Usage
+
+```python
+from impact import trace
+
+@trace(type="agent", name="triage_agent")
+def route_ticket(ticket: str) -> str:
+    return ticket.upper()
+
+@trace(type="tool", name="search_docs")
+def search_docs(query: str) -> dict:
+    return {"results": []}
+```
+
+See [all decorator arguments](/sdk/python/api-reference#tracetype-name-attributes).
+
+### Nested Example
+
+```python
+from impact import trace
+
+@trace(type="workflow", name="chat_request")
+def handle_chat(message: str) -> str:
+    context = retrieve_context(message)
+    return generate_answer(message, context)
+
+@trace(type="retrieval")
+def retrieve_context(query: str):
+    ...
+
+@trace(type="task")
+def generate_answer(query: str, context):
+    ...
+```
+
+## Next
+
+- [Recipes](/sdk/python/recipes) — framework-specific patterns and full examples
+- [Integrations](/sdk/python/integrations)
+- [API Reference](/sdk/python/api-reference)

@@ -1,0 +1,71 @@
+---
+title: Instrumentation
+description: "What it means to instrument your code and the core telemetry primitives"
+icon: "code"
+---
+
+Instrumentation is the process of adding lightweight hooks to your application so Impact can observe what happens at runtime. When you **instrument** your code, you are telling the SDK which parts of your application to monitor — LLM calls, tool invocations, retrieval steps, or any custom logic you care about.
+
+In practice this means:
+
+1. **Initialize** the SDK with your API key. This turns on auto-instrumentation for [supported providers](/sdk/javascript/integrations), so calls to OpenAI, Anthropic, Google Gen AI, and others are captured automatically.
+2. **Add context** (user ID, interaction ID, version) so Impact can group and attribute the captured data correctly.
+3. **Wrap custom logic** with manual tracing when you need visibility into orchestration steps that auto-instrumentation does not cover.
+
+The SDK is built on [OpenTelemetry](https://opentelemetry.io/), the industry-standard observability framework. Everything it captures is expressed in three core primitives: **interactions**, **traces**, and **spans**.
+
+## Core Primitives
+
+<AccordionGroup>
+  <Accordion title="Span" icon="circle-dot">
+    A **span** is the smallest unit of work the SDK records. It represents a single operation — an LLM call, a tool invocation, a retrieval query, or any function you wrap with `@trace` / `impact.trace()`.
+
+    Every span captures:
+    - a **name** and **type** (e.g. `llm`, `tool`, `retrieval`, `workflow`)
+    - **start and end timestamps**
+    - **input and output** (when content capture is enabled)
+    - **status** (ok or error) and any recorded exceptions
+    - **custom attributes** you attach
+
+    Spans nest inside each other to form a tree, so you can see exactly which operations happened as part of a larger workflow.
+  </Accordion>
+
+  <Accordion title="Trace" icon="route">
+    A **trace** is a tree of spans that represents one logical unit of execution — typically a single request or conversation turn. When a user sends a message and your app retrieves context, calls an LLM, and returns a response, all of the spans produced form one trace.
+
+    The SDK creates a trace automatically whenever the first span starts in a new execution context. You don't need to create traces manually; just instrument the operations and the SDK groups them.
+  </Accordion>
+
+  <Accordion title="Interaction" icon="messages">
+    An **interaction** groups multiple traces into a session-level exchange. Think of it as the full conversation between a user and your AI feature — every request/response turn is a trace, and together they form the interaction.
+
+    You set the interaction by calling `context({ interactionId: "..." })` (JS) or `context(interaction_id="...")` (Python). All traces produced while that context is active are linked to the same interaction.
+
+    Interactions are the primary unit Impact evaluates. Modules score quality, detect issues, and build metrics at the interaction level, so setting `interactionId` consistently is essential.
+  </Accordion>
+</AccordionGroup>
+
+### How They Relate
+
+```text
+Interaction  (conversation / session)
+└── Trace    (single request or turn)
+    ├── Span  (LLM call)
+    ├── Span  (tool invocation)
+    └── Span  (retrieval query)
+        └── Span  (nested sub-operation)
+```
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Best Practices" icon="star" href="/sdk/best-practices">
+    Context, tagging, and span structure guidelines with a full example.
+  </Card>
+  <Card title="JavaScript SDK" icon="js" href="/sdk/javascript/setup">
+    Install the JS/TS SDK, initialize, and start sending traces.
+  </Card>
+  <Card title="Python SDK" icon="python" href="/sdk/python/setup">
+    Install the Python SDK, initialize, and start sending traces.
+  </Card>
+</CardGroup>

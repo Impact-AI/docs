@@ -1,0 +1,39 @@
+---
+title: Initialize
+description: "Configure and initialize the Impact SDK"
+icon: "terminal"
+---
+
+1. **Import `impact` first** — before any provider or framework SDK
+
+```python
+import impact
+```
+
+2. Initialize `impact`
+
+```python
+impact.init()
+```
+
+<Info>
+  Already running OpenTelemetry (e.g. Datadog, Langfuse)? Pass `mode="attach"` so Impact adds to your existing setup.
+</Info>
+
+3. **Import provider SDKs** (`openai`, `google-genai`, `boto3`, `anthropic`, etc.)
+
+4. **Register shutdown** — flushes pending telemetry on exit
+
+```python
+import atexit
+atexit.register(impact.shutdown)
+```
+
+<Note>
+  Some libraries (e.g. Haystack) detect tracing at import time — always initialize first.
+</Note>
+
+## Next
+
+- [Instrument](/sdk/python/instrument)
+- [API Reference](/sdk/python/api-reference)

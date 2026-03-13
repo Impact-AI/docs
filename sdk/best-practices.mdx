@@ -1,0 +1,258 @@
+---
+title: Best Practices
+description: "Context, tagging, and span structure guidelines for effective instrumentation"
+icon: "star"
+---
+
+A few extra lines of context and structure unlock the full power of Impact — per-user analytics, automated evaluations, version comparisons, and smart alerts. It's a small investment that makes your traces dramatically more valuable.
+
+## Always Set Context
+
+Every request should call `impact.context()` so Impact can attribute traces to the right user, conversation, and version.
+
+| Field | Purpose |
+|---|---|
+| `User Id`| Links traces to an end user — required for per-user quality analysis. |
+| `Interaction Id` | Groups conversation turns into one interaction, the primary unit Impact evaluates. |
+| `Version Id`| Tags traces with a release version for cross-version quality comparison. |
+
+<Tip>Set context in middleware or at the top of your handler so every child span inherits it.</Tip>
+
+## Tag Your Application Logic
+
+Well-structured spans give Impact a clear map of your product. When each function has the right type, a descriptive name, and a good docstring, Impact can pinpoint exactly where quality degrades and explain *why* — not just *that* something went wrong.
+
+### What to Trace
+
+| What | Span `type` | Why |
+|---|---|---|
+| Top-level request handler | `workflow` | Root span that groups the entire turn. |
+| Tool / function calls | `tool` | Surfaces invocation timing and return values. |
+| Retrieval / search steps | `retrieval` | Enables context quality evaluation. |
+| Agent or sub-agent steps | `agent` | Makes multi-agent handoffs visible. |
+| Post-processing / formatting | `task` | Captures logic between LLM response and final output. |
+
+### Write Agent-Friendly Names and Docstrings
+
+Impact's AI agents read your span names and docstrings to diagnose issues. The better they understand each function, the more actionable their analysis becomes.
+
+Describe each function as you would to a colleague who has never seen your code — what it does, why, and any important constraints. Skip parameter-level docs; Impact already captures inputs and outputs.
+
+<CardGroup cols={2}>
+<Card title="Good" icon="circle" iconType="solid" color="#16a34a">
+**`search_knowledge_base`**
+*"Search the help-center for articles matching the customer's question. Returns top 5 by relevance."*
+</Card>
+<Card title="Bad" icon="circle" iconType="solid" color="#e05252">
+**`do_query`**
+*"Takes a query string and returns a list of dicts."*
+</Card>
+<Card title="Good" icon="circle" iconType="solid" color="#16a34a">
+**`create_support_ticket`**
+*"Open a Jira ticket when the AI answer needs human follow-up. Returns ticket ID and status."*
+</Card>
+<Card title="Bad" icon="circle" iconType="solid" color="#e05252">
+**`call_api`**
+*"Calls POST /rest/api/2/issue with Basic auth and parses the JSON response."*
+</Card>
+</CardGroup>
+
+If your codebase already has technical function names and docstrings you don't want to change, override them via `name` and the `description` attribute — Impact's agents will use those instead:
+
+<CodeGroup>
+
+```python Python
+@trace(
+    type="tool",
+    name="create_support_ticket",
+    attributes={"description": "Open a Jira ticket when the AI answer needs human follow-up"},
+)
+def _post_jira_issue(user_id: str, question: str, answer: str) -> dict:
+    """Sends POST /rest/api/2/issue with Basic auth. Retries 3x on 429."""
+    ...
+```
+
+```typescript JavaScript
+const createTicket = impact.trace(
+  "create_support_ticket",
+  async (userId: string, question: string, answer: string) => {
+    // Sends POST /rest/api/2/issue with Basic auth. Retries 3x on 429.
+    ...
+  },
+  {
+    type: "tool",
+    attributes: { description: "Open a Jira ticket when the AI answer needs human follow-up" },
+  },
+);
+```
+
+</CodeGroup>
+
+## Full Example
+
+A chat endpoint that searches a knowledge base, generates a response, and optionally creates a ticket.
+
+<CodeGroup>
+
+```python Python
+import impact
+from impact import trace
+from openai import OpenAI
+
+impact.init()
+client = OpenAI()
+
+
+# ✅ "workflow" groups the entire turn into one trace tree
+# ✅ name overrides "handle_chat" with an agent-friendly "customer_chat"
+@trace(type="workflow", name="customer_chat")
+def handle_chat(user_id: str, session_id: str, message: str) -> str:
+    # ✅ Agent-friendly docstring: what it does, why, and key behavior
+    """Handle one turn of a customer support conversation: retrieve relevant
+    docs, generate a response, and escalate to a human agent if needed."""
+
+    # ✅ Context set early so every child span inherits user, interaction, and version
+    impact.context(
+        user_id=user_id,
+        interaction_id=session_id,
+        version_id="v2.1",
+    )
+
+    docs = search_knowledge_base(message)
+    response = client.responses.create(
+        model="gpt-4.1",
+        input=build_prompt(message, docs),
+    )
+    answer = response.output_text
+
+    if needs_ticket(answer):
+        create_support_ticket(user_id, message, answer)
+
+    return answer
+
+
+# ✅ "tool" type lets Impact evaluate this step independently
+# ✅ Descriptive name — Impact's agents know exactly what this does
+@trace(type="tool", name="search_knowledge_base")
+def search_knowledge_base(query: str) -> list[dict]:
+    # ✅ Docstring mentions behavior and edge case (fallback on failure)
+    """Search the help-center for articles matching the customer's question.
+    Returns top 5 by relevance. Empty list if the search service is down."""
+    return [{"title": "Reset password", "snippet": "Go to Settings > Security ..."}]
+
+
+@trace(type="tool", name="create_support_ticket")
+def create_support_ticket(user_id: str, question: str, answer: str) -> dict:
+    # ✅ Docstring explains when and why this tool is called
+    """Open a Jira ticket when the AI answer needs human follow-up.
+    Returns the ticket ID and status."""
+    return {"ticket_id": "HELP-1234", "status": "created"}
+```
+
+```typescript JavaScript
+import impact from "impact-ai";
+import OpenAI from "openai";
+
+impact.init();
+
+const openai = new OpenAI();
+
+// ✅ "workflow" groups the entire turn into one trace tree
+// ✅ "customer_chat" overrides the variable name with an agent-friendly span name
+const handleChat = impact.trace(
+  "customer_chat",
+  /**
+   * ✅ Agent-friendly docstring: what it does, why, and key behavior
+   * Handle one turn of a customer support conversation: retrieve relevant
+   * docs, generate a response, and escalate to a human agent if needed.
+   */
+  async (userId: string, sessionId: string, message: string) => {
+    // ✅ Context set early so every child span inherits user, interaction, and version
+    impact.context({
+      userId,
+      interactionId: sessionId,
+      versionId: "v2.1",
+    });
+
+    const docs = await searchKnowledgeBase(message);
+    const response = await openai.responses.create({
+      model: "gpt-4.1",
+      input: buildPrompt(message, docs),
+    });
+    const answer = response.output_text;
+
+    if (needsTicket(answer)) {
+      await createSupportTicket(userId, message, answer);
+    }
+
+    return answer;
+  },
+  { type: "workflow" },
+);
+
+// ✅ "tool" type lets Impact evaluate this step independently
+// ✅ Descriptive name — Impact's agents know exactly what this does
+const searchKnowledgeBase = impact.trace(
+  "search_knowledge_base",
+  /** ✅ Docstring mentions behavior and edge case (fallback on failure)
+   *  Search the help-center for articles matching the customer's question.
+   *  Returns top 5 by relevance. Empty array if the search service is down. */
+  async (query: string) => {
+    return [{ title: "Reset password", snippet: "Go to Settings > Security ..." }];
+  },
+  { type: "tool" },
+);
+
+const createSupportTicket = impact.trace(
+  "create_support_ticket",
+  /** ✅ Docstring explains when and why this tool is called
+   *  Open a Jira ticket when the AI answer needs human follow-up.
+   *  Returns the ticket ID and status. */
+  async (userId: string, question: string, answer: string) => {
+    return { ticketId: "HELP-1234", status: "created" };
+  },
+  { type: "tool" },
+);
+```
+
+</CodeGroup>
+
+Resulting trace tree:
+
+```text
+🔀 customer_chat  (workflow)
+├── 🔧 search_knowledge_base  (tool)
+├── 🤖 OpenAI responses.create  (llm – auto-instrumented)
+└── 🔧 create_support_ticket  (tool)
+```
+
+## Checklist
+
+<Steps>
+  <Step title="Set context on every request">
+    Always provide `userId` and `interactionId`. Add `versionId` when comparing releases.
+  </Step>
+  <Step title="Wrap the top-level handler">
+    Use a `workflow` span so the entire turn appears as a single trace tree.
+  </Step>
+  <Step title="Tag tools and retrieval">
+    Give each tool its own span with a descriptive name and `type`.
+  </Step>
+  <Step title="Use descriptive names and docstrings">
+    Name functions by action and intent. Add agent-friendly docstrings that explain what and why.
+  </Step>
+  <Step title="Flush in serverless environments">
+    Call `flush()` (JS) or `shutdown()` (Python) before the process exits.
+  </Step>
+</Steps>
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="JavaScript — Instrument" icon="js" href="/sdk/javascript/instrument">
+    Context, manual tracing, and framework patterns.
+  </Card>
+  <Card title="Python — Instrument" icon="python" href="/sdk/python/instrument">
+    Context, manual spans, ASGI support, and shutdown.
+  </Card>
+</CardGroup>

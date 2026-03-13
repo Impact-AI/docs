@@ -1,0 +1,470 @@
+---
+title: API Reference
+description: "Complete reference for the impact-ai package (v0.3.1)"
+icon: "book"
+---
+
+## Default Export
+
+```typescript
+import impact from "impact-ai";
+// or
+import { impact } from "impact-ai";
+```
+
+Both the default and named export reference the same singleton instance.
+
+---
+
+## `impact.init(options?)`
+
+Resolves configuration, sets up OpenTelemetry providers/exporters, and registers auto-instrumentations for supported AI providers.
+
+```typescript
+impact.init({
+  apiKey: process.env.IMPACT_API_KEY,
+  serviceName: "my-app",
+  captureContent: true,
+});
+```
+
+Idempotent — the first call configures the SDK; subsequent calls are silently ignored. Call once at startup, before importing any provider SDKs.
+
+<Warning>
+  Throws if `apiKey` is missing, `endpoint` cannot be resolved, or `diagLogLevel` is invalid.
+</Warning>
+
+<Accordion title="All options (ImpactInitOptions)">
+
+| Option | Type | Default | Env Variable | Description |
+|---|---|---|---|---|
+| `apiKey` | `string` | — | `IMPACT_API_KEY` | Your Impact API key. **Required** (via option or env). |
+| `endpoint` | `string` | Derived from `apiKey` | `IMPACT_BASE_URL` | OTLP base URL. Auto-derived from `impact_<region>_*` keys. Trailing slashes and `/v1/traces` suffixes are normalized. |
+| `serviceName` | `string` | `"impact-app"` | `OTEL_SERVICE_NAME` | OpenTelemetry `service.name` resource attribute. |
+| `serviceVersion` | `string` | — | `npm_package_version` | OpenTelemetry `service.version` resource attribute. |
+| `environment` | `string` | `"prod"` | `DEPLOYMENT_ENVIRONMENT` | OpenTelemetry `deployment.environment` resource attribute. |
+| `captureContent` | `boolean` | `true` | — | Capture prompt/response content in traces. Sets the necessary OTel env vars for content recording across all instrumentation sources. |
+| `logsEnabled` | `boolean` | `true` | — | Export log records via OTLP in addition to traces. |
+| `disableBatch` | `boolean` | `false` | — | Send spans individually (useful for debugging). |
+| `mode` | `ImpactInitMode` | `"auto"` | — | OTel integration mode. See [ImpactInitMode](#impactinitmode). |
+| `diagLogLevel` | `ImpactDiagLogLevel` | `"warn"` | `IMPACT_DIAG_LOG_LEVEL` | Diagnostic log verbosity. See [ImpactDiagLogLevel](#impactdiagloglevel). |
+| `instrumentations` | `Partial<Record<InstrumentationKey, boolean>>` | See [Integrations](/sdk/javascript/integrations) | — | Toggle individual provider instrumentations. See [InstrumentationKey](#instrumentationkey). |
+
+</Accordion>
+
+---
+
+## `impact.context(ctx)`
+
+Sets context attributes for the current async scope. Values are automatically attached to all spans emitted within the scope (including auto-instrumented provider spans).
+
+```typescript
+impact.context({ userId: "user_123" });
+
+impact.context({ interactionId: "conv_456" });
+// Both userId and interactionId are now set.
+
+impact.context({ attributes: { team: "growth" } });
+impact.context({ attributes: { feature: "onboarding" } });
+// Both team and feature are now set.
+```
+
+Calls **merge** incrementally — you can set fields across multiple calls. Custom `attributes` merge too (not replaced).
+
+<Accordion title="All fields (ImpactContext)">
+
+| Field | Type | Span Attribute | Description |
+|---|---|---|---|
+| `userId` | `string` | `impact.context.user_id` | Identifies the end user. |
+| `interactionId` | `string` | `impact.context.interaction_id` | Groups spans into a conversation or session. |
+| `versionId` | `string` | `impact.context.version_id` | Tracks the prompt/app/workflow version. |
+| `traceContent` | `boolean` | — | Overrides global `captureContent` for this scope. Affects the default for `captureInput`/`captureOutput` on `impact.trace()` calls. |
+| `attributes` | `Record<string, AttributeValue>` | `impact.context.<key>` | Arbitrary key-value pairs. `AttributeValue` is the OTel type (`string \| number \| boolean \| Array<string \| number \| boolean>`). |
+
+</Accordion>
+
+---
+
+## `impact.trace(fn, options?)`
+
+Wraps a function in an OpenTelemetry span and returns a new function with the same signature. Span name defaults to `fn.name`, or `"impact.span"` if anonymous.
+
+```typescript
+async function fetchProfile(userId: string) {
+  return db.users.findOne({ id: userId });
+}
+
+const tracedFetch = impact.trace(fetchProfile, { type: "task" });
+const profile = await tracedFetch("user_123");
+// Span name: "fetchProfile"
+```
+
+## `impact.trace(name, fn, options?)`
+
+Same as above, with an explicit span name.
+
+```typescript
+const checkout = impact.trace("checkout", async (orderId: string) => {
+  return { ok: true, orderId };
+});
+
+const result = await checkout("order_abc");
+// Span name: "checkout"
+```
+
+<Accordion title="Return type handling">
+
+| Return type | Behavior |
+|---|---|
+| **Synchronous value** | Span starts and ends synchronously around the call. |
+| **Promise** | Span starts before the call and ends when the promise settles. |
+| **AsyncIterable** | Span starts before iteration and ends when the iterator completes or throws. |
+
+</Accordion>
+
+<Accordion title="Error handling">
+
+If the wrapped function throws (sync or async), the exception is recorded on the span via `span.recordException()`, the span status is set to `ERROR`, the span is ended, and the original error is re-thrown. Your application's error handling is unaffected.
+
+</Accordion>
+
+<Accordion title="Input/output capture">
+
+When `captureInput` is enabled, function arguments are serialized as JSON and stored in `impact.trace.input`. When `captureOutput` is enabled, the return value is serialized into `impact.trace.output`. Both default to the value of `captureContent` (set at init or overridden per-context via `traceContent`).
+
+Serialization handles `Error` objects, `BigInt`, and circular references. Payloads exceeding 10 million characters are truncated.
+
+</Accordion>
+
+<Accordion title="All options (ImpactSpanOptions)">
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `name` | `string` | `fn.name` or `"impact.span"` | Span name. When using `trace(name, fn)`, set from the first argument. |
+| `type` | `ImpactSpanType` | `"span"` | Logical span type written to `impact.trace.type` (e.g., `"task"`, `"workflow"`, `"agent"`, `"tool"`). |
+| `kind` | `SpanKind` | `SpanKind.INTERNAL` | OpenTelemetry span kind (from `@opentelemetry/api`). |
+| `attributes` | `Record<string, AttributeValue>` | — | Custom attributes added under the `impact.trace.` namespace. Keys matching reserved suffixes (`type`, `name`, `path`, `input`, `output`) are silently dropped. |
+| `captureInput` | `boolean` | Follows `captureContent` / `traceContent` | Serialize function arguments into `impact.trace.input`. |
+| `captureOutput` | `boolean` | Follows `captureContent` / `traceContent` | Serialize return value into `impact.trace.output`. |
+
+</Accordion>
+
+---
+
+## `impact.flush()`
+
+Forces all pending spans and log records to be exported immediately.
+
+```typescript
+const result = await generateText({ /* ... */ });
+await impact.flush();
+return Response.json({ text: result.text });
+```
+
+<Tip>
+  Essential in serverless environments (Vercel, AWS Lambda) where the process may exit before batched data is sent.
+</Tip>
+
+No-op if `init()` has not been called. Errors during flush are silently caught.
+
+---
+
+## `impact.shutdown()`
+
+Flushes remaining data and shuts down the SDK's exporters and providers.
+
+```typescript
+process.on("SIGTERM", async () => {
+  await impact.shutdown();
+  process.exit(0);
+});
+```
+
+After shutdown, the SDK resets to an uninitialized state — `init()` can be called again to reinitialize. In **attach mode**, `shutdown()` does not shut down the external `TracerProvider`; it only tears down the SDK's own processors.
+
+---
+
+## `impact.vercelAITelemetry(options?)`
+
+Returns a telemetry config compatible with the Vercel AI SDK's `experimental_telemetry` parameter. Pass to `generateText`, `streamText`, `generateObject`, etc.
+
+```typescript
+import { generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
+
+const result = await generateText({
+  model: openai("gpt-4.1-mini"),
+  prompt: "Hello!",
+  experimental_telemetry: impact.vercelAITelemetry(),
+});
+```
+
+<Accordion title="All options (VercelAITelemetryOptions)">
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `recordInputs` | `boolean` | Follows `captureContent` | Record inputs in Vercel AI SDK spans. |
+| `recordOutputs` | `boolean` | Follows `captureContent` | Record outputs in Vercel AI SDK spans. |
+| `tracerName` | `string` | `"impact"` | OpenTelemetry tracer name used for Vercel AI SDK spans. |
+
+</Accordion>
+
+---
+
+## `impact.instrumentationResults`
+
+```typescript
+get instrumentationResults(): InstrumentationRegistrationResult[]
+```
+
+Returns a **copy** of the instrumentation registration results. Each entry describes whether a specific provider instrumentation was loaded, skipped, or failed. Empty before `init()` is called.
+
+```typescript
+impact.init({ apiKey: process.env.IMPACT_API_KEY });
+
+for (const r of impact.instrumentationResults) {
+  if (r.code !== "enabled" && r.code !== "disabled") {
+    console.warn(`[${r.displayName}] ${r.code}: ${r.message}`);
+  }
+}
+```
+
+See [InstrumentationRegistrationResult](#instrumentationregistrationresult) for the full shape.
+
+---
+
+## Types
+
+All types are importable from `"impact-ai"`:
+
+```typescript
+import type {
+  ImpactInitOptions,
+  ImpactContext,
+  ImpactSpanOptions,
+  ImpactSpanType,
+  VercelAITelemetryOptions,
+  InstrumentationRegistrationResult,
+  InstrumentationResultCode,
+  InstrumentationKey,
+} from "impact-ai";
+```
+
+### `ImpactSpanType`
+
+```typescript
+type ImpactSpanType = string;
+```
+
+Free-form string tag written to `impact.trace.type`. No enforced values — use whatever fits your application (e.g., `"span"`, `"task"`, `"workflow"`, `"agent"`, `"tool"`).
+
+### `ImpactInitMode`
+
+```typescript
+type ImpactInitMode = "auto" | "bootstrap" | "attach";
+```
+
+| Value | Description |
+|---|---|
+| `"auto"` | **(Default)** Attaches to an existing global `TracerProvider` if one is registered; otherwise bootstraps a new one. |
+| `"bootstrap"` | Always creates and registers a new `TracerProvider` with OTLP exporters. |
+| `"attach"` | Requires an existing `TracerProvider`. Adds Impact span processors without replacing the provider. |
+
+### `ImpactDiagLogLevel`
+
+```typescript
+type ImpactDiagLogLevel = "none" | "error" | "warn" | "info" | "debug" | "verbose";
+```
+
+| Level | Description |
+|---|---|
+| `"none"` | No diagnostic output. |
+| `"error"` | Errors only. |
+| `"warn"` | **(Default)** Warnings and errors. |
+| `"info"` | Informational messages (init status, attach decisions). |
+| `"debug"` | Detailed debugging (exporter activity, span processing). |
+| `"verbose"` | Maximum verbosity. |
+
+### `InstrumentationRegistrationResult`
+
+<Accordion title="Fields">
+
+```typescript
+type InstrumentationRegistrationResult = {
+  key: InstrumentationKey;
+  displayName: string;
+  source: InstrumentationSource;
+  coverage: InstrumentationCoverageStatus;
+  layer: InstrumentationLayer;
+  code: InstrumentationResultCode;
+  moduleId?: string;
+  message: string;
+  error?: string;
+};
+```
+
+| Property | Type | Description |
+|---|---|---|
+| `key` | `InstrumentationKey` | Identifier matching the key in `init({ instrumentations })`. |
+| `displayName` | `string` | Human-readable provider name (e.g., `"OpenAI"`, `"Anthropic"`). |
+| `source` | `InstrumentationSource` | Which instrumentation library powers this integration. |
+| `coverage` | `InstrumentationCoverageStatus` | What level of tracing is supported. |
+| `layer` | `InstrumentationLayer` | Category this provider belongs to. |
+| `code` | `InstrumentationResultCode` | Registration outcome. |
+| `moduleId` | `string \| undefined` | The npm package that was resolved. |
+| `message` | `string` | Human-readable status message. |
+| `error` | `string \| undefined` | Error details if registration failed. |
+
+</Accordion>
+
+### `InstrumentationResultCode`
+
+```typescript
+type InstrumentationResultCode =
+  | "enabled" | "disabled" | "require_unavailable"
+  | "module_not_found" | "module_load_error" | "export_not_found"
+  | "constructor_error" | "register_error";
+```
+
+<Accordion title="Code descriptions">
+
+| Code | Meaning |
+|---|---|
+| `"enabled"` | Loaded and registered successfully. |
+| `"disabled"` | Explicitly disabled in `init({ instrumentations })`. |
+| `"require_unavailable"` | `require()` is not available in the current environment. |
+| `"module_not_found"` | The instrumentation package is not installed. |
+| `"module_load_error"` | Package found but failed to load. |
+| `"export_not_found"` | Package loaded but expected export missing. |
+| `"constructor_error"` | Instrumentation class constructor threw. |
+| `"register_error"` | Constructed but failed to register with the tracer provider. |
+
+</Accordion>
+
+### `InstrumentationKey`
+
+```typescript
+type InstrumentationKey =
+  | "openai" | "openaiAgents" | "anthropic" | "azureOpenAI"
+  | "bedrock" | "mistral" | "groq" | "ollama" | "watsonx"
+  | "googleGenAI" | "vertexAI" | "foundryAgents"
+  | "microsoftAgentFramework" | "cohere" | "together"
+  | "langchain" | "langGraph" | "llamaIndex"
+  | "mcp" | "pinecone" | "qdrant" | "chromaDb";
+```
+
+All valid keys for the `instrumentations` option in `init()`. See [Integrations](/sdk/javascript/integrations) for provider details and defaults.
+
+### `InstrumentationSource`
+
+```typescript
+type InstrumentationSource = "opentelemetry" | "openllmetry" | "impact";
+```
+
+| Value | Description |
+|---|---|
+| `"opentelemetry"` | Official OpenTelemetry instrumentation package. |
+| `"openllmetry"` | Traceloop OpenLLMetry instrumentation package. |
+| `"impact"` | Custom instrumentation built into the Impact SDK. |
+
+### `InstrumentationCoverageStatus`
+
+```typescript
+type InstrumentationCoverageStatus = "covered" | "model_calls_only" | "not_supported";
+```
+
+| Value | Description |
+|---|---|
+| `"covered"` | Full auto-instrumentation available. |
+| `"model_calls_only"` | Model/tool calls captured, no orchestration-level spans. |
+| `"not_supported"` | No instrumentation path available. |
+
+### `InstrumentationLayer`
+
+```typescript
+type InstrumentationLayer = "model" | "agent" | "tooling" | "vector_db";
+```
+
+| Value | Description |
+|---|---|
+| `"model"` | LLM model provider (OpenAI, Anthropic, etc.). |
+| `"agent"` | Agent framework or orchestrator (LangGraph, OpenAI Agents, etc.). |
+| `"tooling"` | Tool protocol (MCP). |
+| `"vector_db"` | Vector database (Pinecone, Qdrant, ChromaDB). |
+
+---
+
+## Span Attribute Schema
+
+### Context Attributes
+
+Set via `impact.context()`. Automatically attached to all spans within the async scope.
+
+| Field | Span Attribute | Type |
+|---|---|---|
+| `userId` | `impact.context.user_id` | `string` |
+| `interactionId` | `impact.context.interaction_id` | `string` |
+| `versionId` | `impact.context.version_id` | `string` |
+| Custom | `impact.context.<key>` | `AttributeValue` |
+
+### Trace Attributes
+
+Set automatically by `impact.trace()` on manual spans.
+
+| Attribute | Description | Set By |
+|---|---|---|
+| `impact.trace.type` | Logical span type (e.g., `"span"`, `"task"`, `"workflow"`). | `options.type` |
+| `impact.trace.name` | Span name. | `options.name` or `fn.name` |
+| `impact.trace.path` | Dot-separated hierarchical path built from nested `trace()` calls. | Automatic |
+| `impact.trace.input` | JSON-serialized function arguments. | `captureInput: true` |
+| `impact.trace.output` | JSON-serialized return value. | `captureOutput: true` |
+
+### Custom Attributes
+
+Custom attributes passed via `options.attributes` in `impact.trace()` are namespaced under `impact.trace.`:
+
+```typescript
+impact.trace("step", fn, {
+  attributes: { priority: "high", retries: 3 },
+});
+// Sets: impact.trace.priority = "high", impact.trace.retries = 3
+```
+
+Keys already starting with `impact.trace.` are kept as-is. Keys matching reserved suffixes (`type`, `name`, `path`, `input`, `output`) are silently dropped.
+
+---
+
+## Environment Variables
+
+| Variable | Used By | Description |
+|---|---|---|
+| `IMPACT_API_KEY` | `init()` | API key (fallback when `apiKey` option is not set). |
+| `IMPACT_BASE_URL` | `init()` | OTLP endpoint (fallback when `endpoint` option is not set). |
+| `IMPACT_DIAG_LOG_LEVEL` | `init()` | Diagnostic log level (fallback when `diagLogLevel` option is not set). |
+| `OTEL_SERVICE_NAME` | `init()` | Service name. Defaults to `"impact-app"`. |
+| `DEPLOYMENT_ENVIRONMENT` | `init()` | Environment label. Defaults to `"prod"`. |
+| `npm_package_version` | `init()` | Service version. Auto-set by npm/node via `npm run` or `npx`. |
+
+Defaults set by the SDK when `captureContent` is enabled:
+
+| Variable | Value | Purpose |
+|---|---|---|
+| `OTEL_SEMCONV_STABILITY_OPT_IN` | Includes `llm` | Enables LLM semantic conventions. |
+| `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT` | `"true"` | Content capture in OTel GenAI instrumentations. |
+| `AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED` | `"true"` | Content capture in Azure SDK instrumentations. |
+
+---
+
+## Error Behavior
+
+| Scenario | Behavior |
+|---|---|
+| `init()` without API key or resolvable endpoint | **Throws** synchronously. |
+| `init()` with invalid `diagLogLevel` | **Throws** synchronously. |
+| `init()` called more than once | Silently ignored (idempotent). |
+| Instrumentation package not installed | Non-fatal. Reported in `instrumentationResults` with code `module_not_found`. |
+| Instrumentation fails to load or register | Non-fatal. Reported in `instrumentationResults`. Other instrumentations still register. |
+| Exception inside a `trace()` wrapper | Recorded on span, status set to `ERROR`, exception re-thrown. |
+| `flush()` or `shutdown()` before `init()` | No-op. |
+| `flush()` or `shutdown()` exporter errors | Silently caught (never throws). |
+| `shutdown()` in attach mode | SDK's own processors shut down; external `TracerProvider` left untouched. |

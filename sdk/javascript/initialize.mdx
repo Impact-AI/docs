@@ -1,0 +1,34 @@
+---
+title: Initialize
+description: "Configure and initialize the Impact SDK"
+icon: "terminal"
+---
+
+1. **Import `impact-ai` first** — before any provider SDK
+
+```typescript
+import impact from "impact-ai";
+```
+
+2. **Call `impact.init()`**
+
+```typescript
+impact.init();
+```
+
+<Info>
+  Already running OpenTelemetry (e.g. Datadog, Langfuse)? Pass `mode: "attach"` so Impact adds to your existing setup.
+</Info>
+
+3. **Import provider SDKs** (`openai`, `@openai/agents`, `@google/genai`, etc.)
+
+4. **Shut down on exit** — flushes pending telemetry
+
+```typescript
+await impact.shutdown();
+```
+
+## Next
+
+- [Instrument](/sdk/javascript/instrument)
+- [API Reference](/sdk/javascript/api-reference)

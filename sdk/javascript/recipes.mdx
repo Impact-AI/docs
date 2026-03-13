@@ -1,0 +1,76 @@
+---
+title: Recipes
+description: "Framework-specific patterns and integration guides"
+icon: "book-open"
+---
+
+Ready-made patterns for common setups. Pick the one that matches your stack.
+
+## Vercel AI SDK
+
+If you're using `generateText`, `streamText`, or `generateObject` from the [Vercel AI SDK](https://sdk.vercel.ai/), add Impact telemetry to each call:
+
+```typescript
+import { generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
+import impact from "impact-ai";
+
+const result = await generateText({
+  model: openai("gpt-4.1-mini"),
+  prompt: "Explain quantum computing in one sentence.",
+  experimental_telemetry: impact.vercelAITelemetry(),
+});
+```
+
+See [telemetry options](/sdk/javascript/api-reference#impactvercelaitelemetryoptions) for controlling what gets captured.
+
+## Next.js
+
+Next.js runs server code in isolated workers. Use the [instrumentation hook](https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation) to initialize Impact once before anything else loads:
+
+```typescript
+// instrumentation.ts (project root)
+import impact from "impact-ai";
+
+export async function register() {
+  impact.init();
+}
+```
+
+Then use `impact.context()` and `impact.vercelAITelemetry()` in your route handlers:
+
+```typescript
+// app/api/chat/route.ts
+import { generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
+import impact from "impact-ai";
+
+export async function POST(req: Request) {
+  const { prompt } = await req.json();
+
+  impact.context({
+    userId: "user_123",
+    interactionId: "conversation_456",
+  });
+
+  const result = await generateText({
+    model: openai("gpt-4.1-mini"),
+    prompt,
+    experimental_telemetry: impact.vercelAITelemetry(),
+  });
+
+  return Response.json({ text: result.text });
+}
+```
+
+## Serverless / Short-Lived Processes
+
+In environments like AWS Lambda, Vercel Functions, or Cloud Functions, spans are buffered in memory. Call `flush()` before the function returns to make sure nothing is lost:
+
+```typescript
+export async function handler(event: unknown) {
+  // your logic
+  await impact.flush();
+  return { ok: true };
+}
+```

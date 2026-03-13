@@ -1,0 +1,30 @@
+---
+description: Writing style for Impact documentation pages
+globs: **/*.mdx
+alwaysApply: false
+---
+
+# Documentation Writing Style
+
+## Tone
+- Concise and straight to the point — no filler, no fluff
+- Direct phrasing ("you can override X via") over explaining internals
+- Don't restate what's already obvious from context
+
+## Structure
+- One-liners beat paragraphs; bullet lists beat prose when listing options
+- Prefer short callout boxes (`<Info>`, `<Note>`, `<Warning>`, `<Tip>`) over full sections for secondary info
+- Link to the relevant page instead of repeating details inline
+- Drop "this page covers..." preambles — let the content speak
+- Remove sections that state the obvious (e.g. "all integrations are enabled by default" when a table already shows it)
+
+## Accordions & Details
+- Reference tables (options, arguments, fields) go in `<Accordion>` dropdowns, not inline
+- Skip lead-in prose before code in accordions — the title is the context
+- Keep accordion content tight: code + short bullets, no paragraphs
+- Tips and notes: one line max, action-oriented
+
+## Descriptions
+- Runtime modes, shutdown, error handling: one sentence each
+- Feature descriptions: what it does, not how it works internally
+- BYO/advanced sections: short bullets over paragraphs

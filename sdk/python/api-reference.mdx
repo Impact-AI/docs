@@ -1,0 +1,396 @@
+---
+title: API Reference
+description: "Complete reference for the impact Python package"
+icon: "book"
+---
+
+## `impact.init(**kwargs)`
+
+Resolves configuration, sets up OpenTelemetry providers/exporters, and auto-instruments supported AI SDKs and frameworks.
+
+```python
+impact.init(
+    api_key="impact_eu_xxx",
+    api_endpoint="https://api.eu.impact.ai",
+    mode="auto",
+    disable_batch=False,
+    disable_logs=False,
+)
+```
+
+Idempotent — the first call configures the SDK; subsequent calls are silently ignored. Call once at startup, before importing any provider SDKs.
+
+<Warning>
+  Raises `ValueError` if no API key or endpoint can be resolved.
+</Warning>
+
+<Accordion title="All arguments">
+
+| Argument | Type | Default | Description |
+|---|---|---|---|
+| `api_key` | `str \| None` | `None` | Impact API key. Falls back to `IMPACT_API_KEY`. |
+| `api_endpoint` | `str \| None` | `None` | OTLP endpoint. Falls back to `IMPACT_BASE_URL`, or derived from API key. |
+| `mode` | `"auto" \| "bootstrap" \| "attach"` | `"auto"` | Controls whether Impact attaches to an existing OTel provider or creates one. See [Initialization modes](#initialization-modes). |
+| `disable_batch` | `bool` | `False` | Simple processors instead of batch. Useful for debugging. |
+| `disable_logs` | `bool` | `False` | Disables OTLP log export. May reduce captured content for integrations that emit prompts/completions as log events. |
+
+</Accordion>
+
+<Accordion title="Initialization modes">
+- **`auto`** — attaches to an existing `TracerProvider` if one is registered, otherwise bootstraps a new one.
+- **`bootstrap`** — always creates and sets new providers for tracing (and logging when enabled).
+- **`attach`** — adds Impact processors to an existing `TracerProvider` without replacing it. Raises `ValueError` if no real provider exists.
+</Accordion>
+
+<Accordion title="API key & endpoint resolution">
+**API key** resolution order:
+1. Explicit `api_key=...`
+2. `IMPACT_API_KEY`
+
+**Endpoint** resolution order:
+1. Explicit `api_endpoint=...`
+2. `IMPACT_BASE_URL`
+3. Derived from an Impact-style key: `https://api.{region}.{domain}` where `region` is the second underscore-separated segment and `domain` defaults to `impact.ai` (or `IMPACT_DOMAIN`).
+
+```python
+impact.init(api_key="impact_eu_abc123")
+# resolves to https://api.eu.impact.ai
+```
+</Accordion>
+
+<Accordion title="What init() does">
+1. Resolves API key and endpoint.
+2. Configures OTLP HTTP export to `{api_endpoint}/v1/traces` and `{api_endpoint}/v1/logs` (unless `disable_logs=True`).
+3. Creates or attaches to OpenTelemetry providers per `mode`.
+4. Installs an Impact span processor that attaches context attributes to new spans.
+5. Enables thread context propagation.
+6. Instruments `httpx`.
+7. Auto-instruments supported AI SDKs and frameworks on a best-effort basis.
+</Accordion>
+
+<Accordion title="Side effects">
+- May set the global `TracerProvider` and `LoggerProvider`.
+- May set the global text-map propagator to W3C Trace Context (except in `attach` mode).
+- May patch supported third-party SDKs for instrumentation.
+</Accordion>
+
+---
+
+## `impact.context(**kwargs)`
+
+Sets context attributes for the current async scope. Values are automatically attached to all spans emitted within the scope (including auto-instrumented provider spans).
+
+```python
+impact.context(
+    user_id="user-42",
+    interaction_id="conversation-123",
+    version_id="2026-03-13",
+    team="support",
+    tier="enterprise",
+)
+```
+
+Calls **merge** incrementally — later keys overwrite earlier values. `None` values are skipped. Non-`None` values are stringified via `str()`.
+
+Safe across async tasks, nested spans, and concurrent request handlers (`contextvars`). Thread propagation is enabled during `init()`.
+
+<Accordion title="All fields">
+
+| Argument | Type | Span Attribute | Description |
+|---|---|---|---|
+| `user_id` | `str \| None` | `impact.context.user_id` | Identifies the end user. |
+| `interaction_id` | `str \| None` | `impact.context.interaction_id` | Groups spans into a conversation or session. |
+| `version_id` | `str \| None` | `impact.context.version_id` | Tracks the prompt/app/workflow version. |
+| `**extras` | `Any` | `impact.context.<key>` | Arbitrary key-value pairs. |
+
+</Accordion>
+
+---
+
+## `@trace(type, name, attributes)`
+
+Wraps a function in an OpenTelemetry span. Span name defaults to `fn.__qualname__`.
+
+```python
+from impact import trace
+
+@trace(type="agent", name="triage_agent")
+def route_ticket(ticket: str) -> str:
+    return ticket.upper()
+```
+
+Supports both `@trace` (bare) and `@trace(...)` (with arguments). Works with sync functions, async functions, sync generators, and async generators. Exceptions are recorded on the span and re-raised.
+
+<Accordion title="All arguments">
+
+| Argument | Type | Default | Description |
+|---|---|---|---|
+| `type` | `str` | `"span"` | Logical type for the span, such as `workflow`, `agent`, `tool`, or `task`. |
+| `name` | `str \| None` | `None` | Overrides the span name. Defaults to `fn.__qualname__`. |
+| `attributes` | `Mapping[str, Any] \| None` | `None` | Extra attributes attached under the `impact.trace.` namespace. Keys `type`, `name`, `path`, `input`, `output` are reserved and ignored. |
+
+</Accordion>
+
+<Accordion title="Emitted span attributes">
+
+| Attribute | Description |
+|---|---|
+| `impact.trace.type` | Logical span type. |
+| `impact.trace.name` | Stable name for the decorated span. |
+| `impact.trace.path` | Dot-separated path of nested `@trace` spans. |
+| `impact.trace.input` | JSON serialization of `{"args": [...], "kwargs": {...}}`. |
+| `impact.trace.output` | JSON serialization of the return value, or `{"generator": true}` for generators. |
+| `impact.trace.<key>` | Custom attributes from the `attributes` parameter. |
+
+Serialization uses `json.dumps(value, default=str)` and is best-effort — failures don't interrupt execution.
+
+</Accordion>
+
+<Accordion title="Path semantics">
+Nested `@trace` spans build a dot-separated path from their names:
+
+```python
+@trace(type="workflow", name="workflow")
+def workflow():
+    step()
+
+@trace(type="task", name="step")
+def step():
+    ...
+```
+
+The child span receives `impact.trace.path = workflow.step`.
+</Accordion>
+
+<Accordion title="Usage examples">
+Bare decorator:
+
+```python
+@trace
+def run():
+    ...
+```
+
+Explicit type, name, and attributes:
+
+```python
+@trace(type="tool", name="search_docs", attributes={"index": "kb"})
+def search_docs(query: str) -> dict:
+    return {"results": []}
+```
+
+Async:
+
+```python
+@trace(type="agent", name="planner")
+async def plan(query: str) -> str:
+    return query.upper()
+```
+</Accordion>
+
+---
+
+## `impact.instrument_asgi_app(app)`
+
+Wraps an ASGI application with `OpenTelemetryMiddleware` for request-level tracing. Returns the original app unchanged if `opentelemetry.instrumentation.asgi` is not installed.
+
+```python
+from fastapi import FastAPI
+import impact
+
+impact.init()
+app = FastAPI()
+app = impact.instrument_asgi_app(app)
+```
+
+Works with FastAPI, Starlette, Quart, and any ASGI-compatible framework.
+
+---
+
+## `impact.shutdown()`
+
+Flushes pending telemetry and shuts down Impact-owned processors. In `attach` mode, only tears down the processors Impact added — the user's provider is left intact.
+
+```python
+import impact
+
+impact.shutdown()
+```
+
+<Note>Shutdown errors are logged but never re-raised.</Note>
+
+---
+
+## Span Attribute Schema
+
+### Context Attributes
+
+Set via `impact.context()`. Automatically attached to all spans within the async scope.
+
+| Field | Span Attribute | Type |
+|---|---|---|
+| `user_id` | `impact.context.user_id` | `str` |
+| `interaction_id` | `impact.context.interaction_id` | `str` |
+| `version_id` | `impact.context.version_id` | `str` |
+| Custom | `impact.context.<key>` | `Any` (stringified) |
+
+### Trace Attributes
+
+Set automatically by `@trace` on manual spans.
+
+| Attribute | Description | Set By |
+|---|---|---|
+| `impact.trace.type` | Logical span type (e.g., `"span"`, `"task"`, `"workflow"`). | `type` argument |
+| `impact.trace.name` | Span name. | `name` argument or `fn.__qualname__` |
+| `impact.trace.path` | Dot-separated hierarchical path built from nested `@trace` calls. | Automatic |
+| `impact.trace.input` | JSON-serialized function arguments. | Automatic |
+| `impact.trace.output` | JSON-serialized return value. | Automatic |
+
+---
+
+## Environment Variables
+
+| Variable | Used By | Description |
+|---|---|---|
+| `IMPACT_API_KEY` | `init()` | API key (fallback when `api_key` argument is not set). |
+| `IMPACT_BASE_URL` | `init()` | OTLP endpoint (fallback when `api_endpoint` argument is not set). |
+| `IMPACT_DOMAIN` | `init()` | Domain for endpoint derivation. Defaults to `impact.ai`. |
+| `IMPACT_EXPORTER_DEBUG` | Runtime | Log successful exports. Failures are always logged. |
+| `OTEL_SERVICE_NAME` | `init()` | Service name. Defaults to `"impact-app"`. |
+| `OTEL_LOG_LEVEL` | Runtime | General OTel diagnostics verbosity. |
+
+<Accordion title="Defaults set by init()">
+Applied via `os.environ.setdefault()` — your values always take precedence.
+
+| Variable | Default |
+|---|---|
+| `OTEL_SEMCONV_STABILITY_OPT_IN` | `gen_ai_latest_experimental` |
+| `OTEL_INSTRUMENTATION_OPENAI_AGENTS_CAPTURE_CONTENT` | `true` |
+| `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT` | `SPAN_AND_EVENT` |
+| `AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED` | `true` |
+| `ENABLE_INSTRUMENTATION` | `true` |
+| `ENABLE_SENSITIVE_DATA` | `true` |
+| `HAYSTACK_CONTENT_TRACING_ENABLED` | `true` |
+</Accordion>
+
+---
+
+## Resource Attributes
+
+When Impact creates a provider, it configures an OpenTelemetry `Resource` with:
+
+| Attribute | Source |
+|---|---|
+| `service.name` | `OTEL_SERVICE_NAME` or `impact-app` |
+| `impact.sdk.name` | `impact` |
+| `impact.sdk.version` | Package metadata version |
+
+---
+
+## Error Behavior
+
+| Scenario | Behavior |
+|---|---|
+| `init()` without API key or resolvable endpoint | **Raises** `ValueError`. |
+| `init()` called more than once | Silently ignored (idempotent). |
+| Instrumentation package not installed | Non-fatal. Silently skipped. |
+| Instrumentation fails to load or register | Non-fatal. Silently skipped. Other instrumentations still register. |
+| Exception inside a `@trace` wrapper | Recorded on span, status set to `ERROR`, exception re-raised. |
+| `shutdown()` errors | Logged but never re-raised. |
+
+---
+
+## Auto-Instrumentation Coverage
+
+All instrumentations are best-effort — missing dependencies, conflicts, and unexpected errors are silently skipped.
+
+<Accordion title="Model providers">
+- OpenAI
+- Anthropic
+- Google Gen AI
+- Vertex AI
+- AWS Bedrock
+- Azure AI
+- Cohere
+- Mistral
+- Groq
+- Together
+- Ollama
+- IBM watsonx
+</Accordion>
+
+<Accordion title="Agent & orchestration frameworks">
+- OpenAI Agents
+- Microsoft Foundry Agents
+- Microsoft Agent Framework
+- LangChain
+- LlamaIndex
+- CrewAI
+- Agno
+- Haystack
+- Pydantic AI
+</Accordion>
+
+<Accordion title="Infrastructure">
+- HTTPX
+- Azure AI Search
+- MCP
+- ASGI middleware (via `instrument_asgi_app`)
+- Thread context propagation
+</Accordion>
+
+---
+
+## BYO OpenTelemetry
+
+```python
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+
+import impact
+
+trace.set_tracer_provider(TracerProvider())
+
+impact.init(mode="attach")
+```
+
+- `auto` attaches when a global provider already exists
+- `attach` never replaces the user's provider
+- `shutdown()` only tears down what Impact created
+
+---
+
+## End-to-End Example
+
+```python
+import impact
+from impact import trace
+from fastapi import FastAPI
+from openai import OpenAI
+
+impact.init(
+    api_key="impact_eu_xxx",
+    api_endpoint="https://api.eu.impact.ai",
+    mode="auto",
+)
+
+app = FastAPI()
+app = impact.instrument_asgi_app(app)
+
+client = OpenAI()
+
+@trace(type="workflow", name="support_reply", attributes={"channel": "web"})
+def support_reply(prompt: str) -> str:
+    impact.context(
+        user_id="user-42",
+        interaction_id="support-123",
+        version_id="2026-03-13",
+    )
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=prompt,
+    )
+    return response.output_text
+```
+
+Combines SDK initialization, ASGI instrumentation, business context, manual workflow spans, and auto-instrumented model calls.

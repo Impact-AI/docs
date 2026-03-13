@@ -1,0 +1,58 @@
+---
+title: Setup
+description: "Install the JavaScript SDK and configure credentials"
+icon: "download"
+---
+
+## Requirements
+
+- Node.js >= 18.19.0
+
+## Install
+
+<CodeGroup>
+
+```bash npm
+npm i impact-ai
+```
+
+```bash pnpm
+pnpm add impact-ai
+```
+
+```bash yarn
+yarn add impact-ai
+```
+
+</CodeGroup>
+
+## Set Your API Key
+
+```bash
+export IMPACT_API_KEY="impact_<region>_<token>"
+```
+
+<Info>
+  For custom routing, you can override the traces destination via:
+  - `endpoint` passed to `init()` (see [Initialize](/sdk/javascript/initialize))
+  - `IMPACT_BASE_URL` environment variable
+</Info>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Missing apiKey error">
+    Set `IMPACT_API_KEY` or pass `apiKey` explicitly to `impact.init()`.
+  </Accordion>
+  <Accordion title="Could not resolve endpoint from API key">
+    Use an `impact_<region>_*` key format, or set `IMPACT_BASE_URL` for self-hosted/custom routing.
+  </Accordion>
+  <Accordion title="No traces arriving">
+    Verify outbound access to your Impact endpoint and check that your API key is valid. Enable diagnostics with `diagLogLevel: "info"` for more detail.
+  </Accordion>
+</AccordionGroup>
+
+## Next
+
+- [Initialize](/sdk/javascript/initialize)
+- [Instrument](/sdk/javascript/instrument)
